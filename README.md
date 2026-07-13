@@ -14,6 +14,7 @@ Expo React Native app for [Sadhan Sangha Ashram](https://sadhansangha.in). Conte
 cd Astrax-sadhan-sangha-app
 bun install
 bun run prebuild          # generate android/ (and ios/ on macOS)
+bun run prebuild:android  # Android-only clean prebuild
 bun run android           # or: bun run ios  (macOS + Xcode)
 bun run start             # Metro with expo-dev-client
 ```
@@ -42,6 +43,7 @@ bun run android           # Debug build + install (device/emulator)
 bun run ios               # iOS (macOS)
 bun run android:release   # Local Android release variant
 bun run prebuild          # Regenerate native projects
+bun run prebuild:android  # Android-only clean prebuild
 bun run verify            # lint + tsc + tsc:app + jest
 bun run test              # Jest only
 bun run doctor            # expo-doctor

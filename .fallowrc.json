@@ -3,6 +3,7 @@
   "entry": ["index.ts", "src/App.tsx"],
   "ignoreDependencies": [
     "expo-build-properties",
+    "expo-build-properties",
     "expo-dev-client",
     "expo-system-ui",
     "immer",

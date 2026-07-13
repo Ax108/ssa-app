@@ -22,8 +22,9 @@ Do not mix `npm install` / `yarn` into the same tree unless you intentionally mi
 | `android` | `expo run:android` (debug) |
 | `ios` | `expo run:ios` (macOS) |
 | `prebuild` | `expo prebuild --clean` (both platforms) |
+| `prebuild:android` | Android-only prebuild (`--clean`) |
 | `prebuild:ios` | iOS-only prebuild |
-| `wsl:prebuild-android` | Prebuild Android (WSL-oriented) |
+| `wsl:prebuild-android` | Same Android prebuild (WSL-oriented alias) |
 | `build:android:wsl` | Gradle `assembleDebug` inside `android/` |
 | `android:release` | `expo run:android --variant release` |
 | `build:android:release:wsl` | Gradle `assembleRelease` |
@@ -64,6 +65,8 @@ Fix lint, types, and failing tests locally. Husky may also run hooks on commit.
 - **Content boot:** splash awaits cache + version sync; clearing AsyncStorage forces a full CDN load on next start.
 - **Logging:** use `logger` from `@shared/utils/logger` (dev-only); avoid raw `console.*` in app code.
 - **External links:** `openExternalUrl` in `@shared/utils/openUrl`.
+- **Native changes:** never hand-edit `android/` or `ios/`. Use `app.json` plugins (`expo-build-properties`, `plugins/android/*`) then `bun run prebuild`.
+- **Release ABIs:** `expo-build-properties` sets `arm64-v8a` + `x86_64` only (same as Mobeet) to avoid Windows Reanimated CMake/`armeabi-v7a` ninja failures; Gradle heap is raised via `plugins/android/withGradleJvmArgs.js`.
 - **Linear gradient:** if the installed binary lacks the native module, `AppLinearGradient` falls back; still rebuild after adding the dependency for production quality.
 - **Text nesting:** Pressable children must be valid RN trees (wrap text in `Text` / structure views carefully — see Satsang screen patterns).
 - **Tab bar height / safe area:** padding belongs on the custom tab bar, not a large bottom inset on `AppRoot`.

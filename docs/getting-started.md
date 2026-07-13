@@ -41,7 +41,7 @@ bun install
 bun run prebuild
 
 # Android only (common on Windows)
-bunx expo prebuild --clean --platform android
+bun run prebuild:android
 
 # iOS only (macOS)
 bun run prebuild:ios

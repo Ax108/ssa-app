@@ -20,7 +20,9 @@ Astrax-sadhan-sangha-app/
 ├── eslint.config.js
 ├── jest.config.js / jest.setup.js
 ├── plugins/                  # Expo config plugins (native tweaks)
-│   └── withAndroidLinkingQueries.js
+│   ├── withAndroidLinkingQueries.js
+│   └── android/
+│       └── withGradleJvmArgs.js
 ├── assets/                   # App icon, splash, adaptive icon, logos
 ├── src/                      # All application TypeScript / UI
 ├── android/                  # GENERATED — do not hand-edit for features

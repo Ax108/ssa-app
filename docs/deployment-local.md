@@ -26,7 +26,7 @@ Regenerate native projects when config changed:
 ```bash
 bun run prebuild
 # or platform-specific:
-bunx expo prebuild --clean --platform android
+bun run prebuild:android
 bun run prebuild:ios
 ```
 
@@ -57,7 +57,13 @@ Requires a **release keystore**. Expo/local workflows:
 
 1. Create or obtain a upload/keystore (keep it offline; never commit).
 2. Configure signing for the `release` build type (Gradle `signingConfigs` or Expo credentials docs).
-3. Build:
+3. After any plugin / ABI change, regenerate natives (do **not** hand-edit `android/`):
+
+```bash
+bun run prebuild:android
+```
+
+4. Build:
 
 ```bash
 bun run android:release
