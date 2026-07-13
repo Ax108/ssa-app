@@ -51,7 +51,7 @@ bun run doctor            # expo-doctor
 
 | Role | Path |
 |------|------|
-| Live website (content source of truth) | `../sadhan-sangha/` |
+| Live website (content source of truth) | `[../sadhan-sangha/](https://github.com/astrarudra/sadhan-sangha)` |
 | Mobile UX visual sample (patterns only) | `../UX-ForMobile-sample-app/` |
 
 CDN base used at runtime: `https://astrarudra.github.io/ssa-static/prod/` — see [docs/content-and-cdn.md](./docs/content-and-cdn.md).
