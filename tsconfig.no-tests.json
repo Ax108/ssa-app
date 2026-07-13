@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    ".expo",
+    "dist",
+    "android",
+    "ios",
+    "jest.setup.js",
+    "jest.config.js",
+    "babel.config.js",
+    "metro.config.js",
+    "eslint.config.js",
+    "react-native.config.js",
+    "plugins/**",
+    "index.ts",
+    "src/tests/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Sadhan Sangha Ashram",
+    "slug": "astrax-sadhan-sangha-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "astraxsadhansanghaapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/icon.png",
+      "bundleIdentifier": "com.astrax.sadhansangha",
+      "supportsTablet": true,
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "https",
+          "http",
+          "tel",
+          "mailto"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.astrax.sadhansangha",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#d29e6c"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#bda894",
+          "image": "./assets/logo2.png",
+          "imageWidth": 100,
+          "resizeMode": "contain"
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "./plugins/withAndroidLinkingQueries.js"
+    ],
+    "experiments": {
+      "reactCompiler": true
+    }
+  }
+}

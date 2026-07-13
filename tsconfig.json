@@ -1,0 +1,62 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "paths": {
+      "@store/*": ["./src/appStore/*"],
+      "@features/*": ["./src/features/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@constants": ["./src/constants/index.ts"],
+      "@constants/*": ["./src/constants/*"],
+      "@appFeatures/*": ["./src/features/app/*"],
+      "@navigation/*": ["./src/features/navigation/*"],
+      "@satsang/*": ["./src/features/satsang/*"],
+      "@contact/*": ["./src/features/contact/*"],
+      "@gallery/*": ["./src/features/gallery/*"],
+      "@ashram/*": ["./src/features/ashram/*"],
+      "@home/*": ["./src/features/home/*"],
+      "@src/*": ["./src/*"],
+      "@/*": ["./*"]
+    },
+    "types": ["react", "react-native", "node", "jest"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "noUncheckedSideEffectImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "erasableSyntaxOnly": true,
+    "noErrorTruncation": true,
+    "lib": ["ES2020"]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    "src/**/*",
+    "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".expo",
+    "dist",
+    "android",
+    "ios",
+    "jest.setup.js",
+    "jest.config.js",
+    "babel.config.js",
+    "metro.config.js",
+    "eslint.config.js",
+    "react-native.config.js",
+    "plugins/**",
+    "index.ts"
+  ]
+}

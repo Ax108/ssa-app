@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -e
+# Block push unless all diagnostics pass (same gates as before, minus coverage).
+# lint → tsc (full + app-only) → tests
+bun lint
+bun tsc
+bun tsc:app
+bun run test
