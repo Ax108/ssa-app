@@ -3,7 +3,7 @@ import { type AppState } from "@store/appStore";
 import {
   RouteTitles,
   type RouteTitleType,
-} from "@features/navigation/types/nav_types";
+} from "@modules/navigation/types/nav_types";
 
 export type NavbarSliceState = {
   title: RouteTitleType;

@@ -23,10 +23,10 @@ This app uses a **development build** (`expo-dev-client`), not Expo Go. You must
 
 ## Clone and install
 
-From the workspace (or your clone root):
+From the clone root ([Ax108/ssa-app](https://github.com/Ax108/ssa-app)):
 
 ```bash
-cd Astrax-sadhan-sangha-app
+cd ssa-app
 bun install
 ```
 
@@ -88,7 +88,7 @@ Use a simulator from Xcode or a signed development device. Physical devices need
 
 ## What “ready” looks like
 
-1. Custom splash stays until **fonts**, **awaited `contentController.init()`** (cache and/or CDN + version sync), and a short ~600ms floor after fonts.
+1. Custom splash stays until **fonts**, **awaited `contentController.init()`** (cache and/or CDN + version sync), **awaited OTA sync**, and a short ~500ms floor after fonts.
 2. Custom bottom bar over a **single nested stack**: Home, Ashram, Satsang, Gallery, Contact (see [architecture.md](./architecture.md)).
 3. Images load from the production CDN (or seed JSON offline); YouTube/Spotify open externally.
 

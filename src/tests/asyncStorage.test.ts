@@ -1,5 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loadStateBulk, saveStateBulk } from "@shared/helpers/asyncStorage";
+import {
+  loadState,
+  loadStateBulk,
+  saveState,
+  saveStateBulk,
+} from "@shared/helpers/asyncStorage";
 
 beforeEach(async () => {
   await AsyncStorage.clear();
@@ -14,6 +19,11 @@ describe("asyncStorage helpers", () => {
       one: { n: 1 },
       two: { n: 2 },
     });
+  });
+
+  it("round-trips a single key", async () => {
+    await saveState("locale", "bn");
+    await expect(loadState<string>("locale")).resolves.toBe("bn");
   });
 
   it("skips invalid JSON for a key", async () => {

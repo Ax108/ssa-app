@@ -8,4 +8,10 @@ export {
   LOCALSTORE,
   GIST,
   GIT,
+  LOCALES,
+  DEFAULT_LOCALE,
+  LOCALE_LABELS,
+  textsStoreKey,
+  isLocale,
+  type Locale,
 } from "./cdn";

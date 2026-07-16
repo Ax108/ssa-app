@@ -47,3 +47,4 @@ example
 .codex/*
 .vscode/*
 .clang-format
+dist-ota/

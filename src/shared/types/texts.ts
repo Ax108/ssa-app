@@ -21,6 +21,16 @@ export interface Headers {
   subscribe: string;
   dailySatsang: string;
   alsoAvailableAt: string;
+  donate: string;
+  donateAccName: string;
+  donateAccNo: string;
+  donateIfsc: string;
+  donateSwift: string;
+  donateBank: string;
+  copied: string;
+  /** Store binary update snackbar (optional on older CDN packs). */
+  storeUpdateMessage?: string;
+  storeUpdateAction?: string;
 }
 
 export interface Footer {
@@ -48,4 +58,5 @@ export interface Texts {
   ashram: string;
   satsang: string;
   gallery: string;
+  donationNote: string;
 }

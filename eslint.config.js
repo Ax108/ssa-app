@@ -127,7 +127,7 @@ module.exports = defineConfig([
   // ─── Test files ───────────────────────────────────────────────────────────
   {
     files: [
-      "src/features/**/tests/**/*.{ts,tsx}",
+      "src/modules/**/tests/**/*.{ts,tsx}",
       "src/shared/**/tests/**/*.{ts,tsx}",
       "src/tests/**/*.{ts,tsx}",
     ],

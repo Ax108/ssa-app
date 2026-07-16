@@ -12,6 +12,8 @@ type FollowUsSectionProps = {
   socialLinks: Record<string, SocialLink>;
   socialNames: Record<string, SocialName>;
   removeTopDivider?: boolean;
+  /** Omit trailing Om when the next block (e.g. Donate) supplies its own. */
+  removeBottomDivider?: boolean;
 };
 
 const SOCIAL_ORDER = ["fb", "yt", "sp", "ap"] as const;
@@ -39,11 +41,14 @@ export const FollowUsSection: React.FC<FollowUsSectionProps> = ({
   socialLinks,
   socialNames,
   removeTopDivider = false,
+  removeBottomDivider = false,
 }) => {
   const entries = SOCIAL_ORDER.filter((key) => socialLinks[key]);
 
   return (
-    <View style={styles.section}>
+    <View
+      style={[styles.section, removeBottomDivider && styles.sectionTightBottom]}
+    >
       {!removeTopDivider && <SSADivider />}
       <CustomText freeman extraBold customStyle={styles.title}>
         {title}
@@ -70,9 +75,11 @@ export const FollowUsSection: React.FC<FollowUsSectionProps> = ({
           );
         })}
       </View>
-      <View style={styles.bottomDivider}>
-        <SSADivider />
-      </View>
+      {!removeBottomDivider ? (
+        <View style={styles.bottomDivider}>
+          <SSADivider />
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -83,6 +90,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 28,
+  },
+  sectionTightBottom: {
+    paddingBottom: 12,
   },
   title: {
     fontSize: 24,

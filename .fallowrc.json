@@ -23,10 +23,10 @@
     "expo-linking",
     "globals",
     "plugins/**",
-    "@appFeatures/types",
-    "@appFeatures/*",
-    "@features/*",
-    "@features/navigation",
+    "@appModules/types",
+    "@appModules/*",
+    "@modules/*",
+    "@modules/navigation",
     "@navigation/*",
     "@navigation/types",
     "@navigation/NavStackMain",
@@ -45,7 +45,7 @@
     "@/*"
   ],
   "ignorePatterns": [
-    "src/features/**/tests/**",
+    "src/modules/**/tests/**",
     "src/shared/**/tests/**",
     "src/tests/**",
     "**/tests/**",
@@ -68,7 +68,7 @@
       "**/dist/**",
       "**/node_modules/**",
       "**/docs/**",
-      "src/features/**/tests/**",
+      "src/modules/**/tests/**",
       "src/shared/**/tests/**",
       "src/tests/**",
       "**/tests/**",
@@ -85,7 +85,7 @@
   "health": {
     "ignore": [
       "**/*.tsx",
-      "src/features/**/tests/**",
+      "src/modules/**/tests/**",
       "src/shared/**/tests/**",
       "src/tests/**",
       "**/tests/**",

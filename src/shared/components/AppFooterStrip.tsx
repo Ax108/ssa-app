@@ -13,6 +13,9 @@ type AppFooterStripProps = {
   socialNames: Record<string, SocialName>;
   /** When false, omit social row (Home/Ashram use shared FollowUsSection). */
   showSocial?: boolean;
+  /** Localized Donate label + press (stack navigation). */
+  donateLabel?: string;
+  onDonatePress?: () => void;
 };
 
 const SOCIAL_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -32,13 +35,15 @@ const SOCIAL_COLORS: Record<string, string> = {
 /** Mobile app developer credit (overrides CDN/web `footer.devName`). */
 const APP_DEV_NAME = "AstraX";
 
-/** Compact dark footer strip (sample AppFooter), data from web config/texts. */
+/** Compact dark footer strip; data from web config/texts. */
 export const AppFooterStrip: React.FC<AppFooterStripProps> = ({
   contact,
   footer,
   socialLinks,
   socialNames,
   showSocial = true,
+  donateLabel,
+  onDonatePress,
 }) => {
   const year = new Date().getFullYear();
   const devName = APP_DEV_NAME;
@@ -79,6 +84,20 @@ export const AppFooterStrip: React.FC<AppFooterStripProps> = ({
       ) : null}
       <View style={styles.divider} />
       <View style={styles.metaRow}>
+        {donateLabel && onDonatePress ? (
+          <>
+            <Pressable
+              onPress={onDonatePress}
+              accessibilityRole="button"
+              accessibilityLabel={donateLabel}
+            >
+              <CustomText customStyle={styles.metaLink}>
+                {donateLabel}
+              </CustomText>
+            </Pressable>
+            <CustomText customStyle={styles.metaSep}>·</CustomText>
+          </>
+        ) : null}
         <Pressable
           onPress={() => void openExternalUrl(`${siteUrl}/privacy`)}
           accessibilityRole="link"

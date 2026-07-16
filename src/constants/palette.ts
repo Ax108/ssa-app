@@ -30,16 +30,16 @@ export const palette = {
   brownDeepAlpha: "#50453ba8",
   brownBorder: "#2f2822",
   brownShadow: "#fbe0ca",
-  /** Sample app footer (`COLORS.footerBg`) — warmer/darker than web `--bg-dark` */
+  /** App footer background — warmer/darker than web `--bg-dark` */
   footerBg: "#2a1f16",
   footerBar: "#2a2620",
   footerMuted: "#898989",
-  /** Sample tab bar (`COLORS.bgDark`) */
+  /** Bottom tab bar background */
   tabBarBg: "#3a2e24",
-  /** Sample gold accent (`COLORS.gold`) — active tab */
+  /** Gold accent — active tab */
   gold: "#d4a017",
   goldLight: "#f9bc23",
-  /** Sample mid text on dark chrome (`COLORS.textMid`) */
+  /** Mid text on dark chrome */
   tabBarTextMid: "#6b5a48",
   white: "#ffffff",
   whiteAlpha: "#ffffffe8",

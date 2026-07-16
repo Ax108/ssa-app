@@ -17,8 +17,6 @@ const sampleConfig = {
     ytPList: "https://youtube.com/playlist?list=",
     ytEmbed: "https://youtube.com/embed/",
     gitAssetBase,
-    spotifyPL: "https://open.spotify.com/embed/show/x",
-    spotifyPLTitle: "Spotify",
   },
   primaryImgs: {
     guruji: { src: "guruji.jpg", alt: "Guruji", width: 100, ratio: 1.2 },
@@ -31,6 +29,13 @@ const sampleConfig = {
     gmapEmbed: "x",
     gmapEmbedTitle: "x",
   },
+  donationDetails: {
+    accountName: "Seva",
+    accountNumber: "1",
+    ifsc: "SBIN",
+    swift: "SW",
+    bankBranch: "Branch",
+  },
   socialLinks: {},
   gallery: {
     albums: {
@@ -40,6 +45,7 @@ const sampleConfig = {
   yt: {
     channel: "@x",
     podcast: "x",
+    bhajan: "videoseries?list=x",
     satsangHeaderVid: "abc123?start=1",
     playlists: [],
   },

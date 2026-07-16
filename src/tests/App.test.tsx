@@ -5,12 +5,22 @@ jest.mock("react-native-screens", () => ({
   enableScreens: jest.fn(),
 }));
 
-jest.mock("@features/app/hooks/useLoadFonts", () => ({
+jest.mock("@modules/app/hooks/useLoadFonts", () => ({
   useLoadFonts: () => ({ fontsLoaded: false, fontError: null }),
 }));
 
-jest.mock("@features/app/components/BubbleLoader", () => ({
+jest.mock("@modules/app/components/BubbleLoader", () => ({
   BubbleLoader: () => null,
+}));
+
+jest.mock("@store/contentController", () => ({
+  contentController: {
+    init: jest.fn().mockResolvedValue({ status: "stub" }),
+  },
+}));
+
+jest.mock("@shared/ota/updatesController", () => ({
+  syncOtaUpdate: jest.fn().mockResolvedValue({ status: "up-to-date" }),
 }));
 
 describe("App", () => {

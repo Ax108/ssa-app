@@ -48,7 +48,7 @@ export const theme = {
     bar: palette.footerBar,
     muted: palette.footerMuted,
   },
-  /** Sample app bottom tabs (`app/(tabs)/_layout.tsx`) */
+  /** Bottom tabs */
   tabBar: {
     background: palette.tabBarBg,
     border: palette.brownBorder,

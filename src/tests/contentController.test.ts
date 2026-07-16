@@ -1,8 +1,20 @@
 import { oxyApi } from "@shared/serviceCalls/oxyApi";
-import { loadStateBulk, saveStateBulk } from "@shared/helpers/asyncStorage";
+import {
+  loadState,
+  loadStateBulk,
+  saveState,
+  saveStateBulk,
+} from "@shared/helpers/asyncStorage";
 import { contentController } from "@store/contentController";
 import { appStore } from "@store/appStore";
-import { GIST, GIT, LOCALSTORE, siteTitle } from "@constants/cdn";
+import {
+  DEFAULT_LOCALE,
+  GIST,
+  GIT,
+  LOCALSTORE,
+  siteTitle,
+  textsStoreKey,
+} from "@constants/cdn";
 import type { Config } from "@shared/types/config";
 import type { Texts } from "@shared/types/texts";
 import type { VersionResponse } from "@shared/types/api";
@@ -17,6 +29,8 @@ jest.mock("@shared/serviceCalls/oxyApi", () => ({
 jest.mock("@shared/helpers/asyncStorage", () => ({
   loadStateBulk: jest.fn(),
   saveStateBulk: jest.fn(),
+  loadState: jest.fn(),
+  saveState: jest.fn(),
 }));
 
 const makeConfig = (version = 1): Config => ({
@@ -25,8 +39,6 @@ const makeConfig = (version = 1): Config => ({
     ytPList: "",
     ytEmbed: "",
     gitAssetBase: "https://cdn/",
-    spotifyPL: "",
-    spotifyPLTitle: "",
   },
   primaryImgs: {
     guruji: {
@@ -44,6 +56,13 @@ const makeConfig = (version = 1): Config => ({
     gmapEmbed: "",
     gmapEmbedTitle: "",
   },
+  donationDetails: {
+    accountName: "Seva",
+    accountNumber: "1",
+    ifsc: "SBIN",
+    swift: "SW",
+    bankBranch: "Branch",
+  },
   socialLinks: {},
   gallery: {
     albums: { ashram: { value: "Ashram", path: "ashram/" } },
@@ -51,6 +70,7 @@ const makeConfig = (version = 1): Config => ({
   yt: {
     channel: "",
     podcast: "",
+    bhajan: "videoseries?list=BHJAN",
     satsangHeaderVid: "",
     playlists: [],
   },
@@ -81,6 +101,13 @@ const makeTexts = (): Texts => ({
     subscribe: "",
     dailySatsang: "",
     alsoAvailableAt: "",
+    donate: "Donate",
+    donateAccName: "",
+    donateAccNo: "",
+    donateIfsc: "",
+    donateSwift: "",
+    donateBank: "",
+    copied: "Copied",
   },
   pages: {
     home: "Home",
@@ -88,6 +115,7 @@ const makeTexts = (): Texts => ({
     satsang: "Satsang",
     gallery: "Gallery",
     contact: "Contact",
+    donation: "Donate",
   },
   footer: {
     privacy: "",
@@ -103,16 +131,21 @@ const makeTexts = (): Texts => ({
   ashram: "Ashram body",
   satsang: "Satsang body",
   gallery: "Gallery body",
+  donationNote: "Please donate.",
 });
 
 beforeEach(() => {
   appStore.setState({
     loaded: false,
     version: null,
+    locale: DEFAULT_LOCALE,
     config: null,
     texts: null,
+    storeUpdateVisible: false,
+    storeUpdateDismissedThisSession: false,
   });
   jest.clearAllMocks();
+  jest.mocked(loadState).mockResolvedValue(undefined);
   jest.spyOn(console, "log").mockImplementation(() => {});
   jest.spyOn(console, "warn").mockImplementation(() => {});
   jest.spyOn(console, "error").mockImplementation(() => {});
@@ -137,6 +170,7 @@ describe("contentController.init", () => {
   });
 
   it("hydrates from storage then awaits version sync", async () => {
+    jest.mocked(loadState).mockResolvedValue("en");
     jest.mocked(loadStateBulk).mockResolvedValue({
       [LOCALSTORE.config]: makeConfig(1),
       [LOCALSTORE.en]: makeTexts(),
@@ -150,6 +184,7 @@ describe("contentController.init", () => {
     const state = appStore.getState();
     expect(state.loaded).toBe(true);
     expect(state.version).toBe(1);
+    expect(state.locale).toBe("en");
     expect(state.config?.primaryImgs.guruji.src).toBe("https://cdn/guruji.jpg");
     expect(syncVersion).toHaveBeenCalledTimes(1);
     expect(result.status).toContain("Loaded from Local Storage");
@@ -163,13 +198,14 @@ describe("contentController.loadVersion", () => {
     } satisfies VersionResponse);
     jest.mocked(oxyApi.getGit).mockImplementation((path: string) => {
       if (path === GIT.config) return Promise.resolve(makeConfig(1));
-      if (path === GIT.english) return Promise.resolve(makeTexts());
+      if (path === GIT.texts.en) return Promise.resolve(makeTexts());
       return Promise.resolve({});
     });
 
-    const result = await contentController.loadVersion();
+    const result = await contentController.loadVersion("en");
 
     expect(oxyApi.getGist).toHaveBeenCalledWith(GIST.version);
+    expect(oxyApi.getGit).toHaveBeenCalledWith(GIT.texts.en);
     expect(saveStateBulk).toHaveBeenCalledTimes(1);
     const saved = jest.mocked(saveStateBulk).mock.calls[0]?.[0];
     expect((saved?.[LOCALSTORE.config] as Config).version).toBe(7);
@@ -177,6 +213,7 @@ describe("contentController.loadVersion", () => {
     const state = appStore.getState();
     expect(state.version).toBe(7);
     expect(state.loaded).toBe(true);
+    expect(state.locale).toBe("en");
 
     const guruji = state.config!.primaryImgs.guruji;
     expect(guruji.key).toBe("guruji");
@@ -191,10 +228,11 @@ describe("contentController.loadVersion", () => {
     jest.mocked(oxyApi.getGist).mockRejectedValue(new Error("offline"));
     jest.mocked(loadStateBulk).mockResolvedValue({});
 
-    const result = await contentController.loadVersion();
+    const result = await contentController.loadVersion("en");
 
     expect(appStore.getState().loaded).toBe(true);
     expect(appStore.getState().config).not.toBeNull();
+    expect(appStore.getState().config?.donationDetails).toBeDefined();
     expect(result.status).toContain("seeded");
   });
 });
@@ -216,6 +254,21 @@ describe("contentController.syncVersion", () => {
     expect(result.status).toContain("Version Synced");
   });
 
+  it("treats numeric string gist versions as equal", async () => {
+    appStore.setState({ version: 1.4 });
+    jest.mocked(oxyApi.getGist).mockResolvedValue({
+      version: "1.4",
+    } satisfies VersionResponse);
+    const loadVersion = jest
+      .spyOn(contentController, "loadVersion")
+      .mockResolvedValue({ status: "stub", version: 1.4 });
+
+    const result = await contentController.syncVersion();
+
+    expect(loadVersion).not.toHaveBeenCalled();
+    expect(result.status).toContain("Version Synced");
+  });
+
   it("reloads when remote version is newer", async () => {
     appStore.setState({ version: 7 });
     jest.mocked(oxyApi.getGist).mockResolvedValue({
@@ -232,8 +285,54 @@ describe("contentController.syncVersion", () => {
   });
 });
 
+describe("contentController.setLocale", () => {
+  it("loads cached locale texts without refetch when present", async () => {
+    appStore.getState().setContent({
+      config: makeConfig(1),
+      texts: makeTexts(),
+      version: 1,
+      locale: "en",
+    });
+    const hiTexts = { ...makeTexts(), donationNote: "हिन्दी" };
+    jest.mocked(loadState).mockResolvedValue(hiTexts);
+    jest.mocked(saveState).mockResolvedValue(undefined);
+
+    const result = await contentController.setLocale("hi");
+
+    expect(oxyApi.getGit).not.toHaveBeenCalled();
+    expect(saveState).toHaveBeenCalledWith(LOCALSTORE.locale, "hi");
+    expect(appStore.getState().locale).toBe("hi");
+    expect(appStore.getState().texts?.donationNote).toBe("हिन्दी");
+    expect(result).toEqual({ status: "Locale set", locale: "hi" });
+  });
+
+  it("fetches locale pack when cache miss", async () => {
+    appStore.getState().setContent({
+      config: makeConfig(1),
+      texts: makeTexts(),
+      version: 1,
+      locale: "en",
+    });
+    jest.mocked(loadState).mockImplementation(async (key: string) => {
+      if (key === textsStoreKey("bn")) return undefined;
+      return undefined;
+    });
+    const bnTexts = { ...makeTexts(), donationNote: "বাংলা" };
+    jest.mocked(oxyApi.getGit).mockResolvedValue(bnTexts);
+    jest.mocked(saveState).mockResolvedValue(undefined);
+
+    const result = await contentController.setLocale("bn");
+
+    expect(oxyApi.getGit).toHaveBeenCalledWith(GIT.texts.bn);
+    expect(saveState).toHaveBeenCalledWith(textsStoreKey("bn"), bnTexts);
+    expect(appStore.getState().locale).toBe("bn");
+    expect(result.status).toContain("Locale set");
+  });
+});
+
 describe("contentController.init awaits CDN update on sync", () => {
   it("does not finish init until loadVersion completes when version changed", async () => {
+    jest.mocked(loadState).mockResolvedValue("en");
     jest.mocked(loadStateBulk).mockResolvedValue({
       [LOCALSTORE.config]: makeConfig(1),
       [LOCALSTORE.en]: makeTexts(),
@@ -252,6 +351,7 @@ describe("contentController.init awaits CDN update on sync", () => {
           config: makeConfig(2),
           texts: makeTexts(),
           version: 2,
+          locale: "en",
         });
         return { status: "Loaded Version", version: 2 };
       });

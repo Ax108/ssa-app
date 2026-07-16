@@ -1,5 +1,5 @@
 import { Appearance } from "react-native";
-import { getDeviceColorScheme } from "@appFeatures/helpers/app_Feature_helpers";
+import { getDeviceColorScheme } from "@appModules/helpers/app_Feature_helpers";
 
 describe("getDeviceColorScheme", () => {
   afterEach(() => {

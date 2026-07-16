@@ -18,6 +18,7 @@ Prefer:
 
 - Pure helpers (`formatConfig`, `assetUrl` / markdown, `oxyApi`)
 - Boot (`contentController`)
+- OTA / store-update helpers (`updatesController`, `storeVersion`, `storeUpdateController`)
 - Thin smokes (`App`, splash brand, Satsang headings)
 
 Avoid brittle layout snapshots and one test per component.
@@ -36,11 +37,12 @@ Current layout: **`src/tests/`**.
 | Area | Typical files |
 |------|----------------|
 | Store / boot | `contentController.test.ts`, `navbarSlice.test.ts` |
+| OTA / store update | `updatesController.test.ts`, `storeVersion.test.ts`, `storeUpdateController.test.ts` |
 | Network / storage | `oxyApi.test.ts` (mock `fetch`), `asyncStorage.test.ts` |
 | Config / markdown | `formatConfig.test.ts` (includes `sectionsFromMarkdown`) |
 | Logging | `logger.test.ts` |
 | UI smoke | `App.test.tsx`, `CustomSplashScreen.test.tsx`, `SatsangScreen.test.tsx` |
-| Theme / nav types | `theme.test.ts`, `navTypes.test.ts` |
+| Theme / nav types | `theme.test.ts`, `navTypes.test.ts` (tabs + donation stack route) |
 
 SVG and awkward native modules are stubbed under `src/tests/__mocks__/` and `jest.setup.js` as needed.
 

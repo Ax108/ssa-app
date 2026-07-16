@@ -17,7 +17,7 @@ bunx eas-cli@latest whoami
 3. Link the project (from app root):
 
 ```bash
-cd Astrax-sadhan-sangha-app
+cd ssa-app   # https://github.com/Ax108/ssa-app
 bunx eas-cli@latest init
 ```
 

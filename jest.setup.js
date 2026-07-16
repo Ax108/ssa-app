@@ -55,6 +55,46 @@ jest.mock("react-native-reanimated", () => {
   };
 });
 
+jest.mock("expo-clipboard", () => ({
+  setStringAsync: jest.fn().mockResolvedValue(undefined),
+  getStringAsync: jest.fn().mockResolvedValue(""),
+}));
+
+jest.mock("expo-constants", () => ({
+  __esModule: true,
+  default: {
+    expoConfig: {
+      version: "1.0.0",
+      android: { package: "com.astrax.sadhansangha" },
+      ios: { bundleIdentifier: "com.astrax.sadhansangha" },
+    },
+    nativeAppVersion: "1.0.0",
+    nativeBuildVersion: "1",
+  },
+}));
+
+jest.mock("expo-updates", () => {
+  let isEnabled = true;
+  return {
+    get isEnabled() {
+      return isEnabled;
+    },
+    set isEnabled(value) {
+      isEnabled = Boolean(value);
+    },
+    isEmbeddedLaunch: true,
+    updateId: null,
+    channel: null,
+    runtimeVersion: "1.0.0",
+    createdAt: null,
+    checkForUpdateAsync: jest
+      .fn()
+      .mockResolvedValue({ isAvailable: false }),
+    fetchUpdateAsync: jest.fn().mockResolvedValue({ isNew: false }),
+    reloadAsync: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
 jest.mock("expo-font", () => ({
   loadAsync: jest.fn().mockResolvedValue(undefined),
   isLoaded: jest.fn().mockReturnValue(true),

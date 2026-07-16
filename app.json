@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sadhan Sangha Ashram",
     "slug": "astrax-sadhan-sangha-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "astraxsadhansanghaapp",
@@ -12,12 +12,7 @@
       "bundleIdentifier": "com.astrax.sadhansangha",
       "supportsTablet": true,
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "https",
-          "http",
-          "tel",
-          "mailto"
-        ]
+        "LSApplicationQueriesSchemes": ["https", "http", "tel", "mailto"]
       }
     },
     "android": {

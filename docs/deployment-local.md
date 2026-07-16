@@ -5,7 +5,7 @@ Build and install store-ready (or sideload) binaries **on your machine**, withou
 ## Shared prep
 
 ```bash
-cd Astrax-sadhan-sangha-app
+cd ssa-app   # https://github.com/Ax108/ssa-app
 bun install
 bun verify
 ```
@@ -19,7 +19,9 @@ Confirm identity in `app.json`:
 | iOS `bundleIdentifier` | `com.astrax.sadhansangha` |
 | `expo.version` | bump for each store release |
 
-Bump `expo.version` (and Android `versionCode` / iOS build number when you introduce them via `app.json` or native projects) before each store upload.
+Bump `expo.version` (and keep `package.json` `version` in sync) before each **store** upload. For JS-only fixes after a binary is shipped, use OTA instead — see [ota-self-host.md](./ota-self-host.md).
+
+When prebuilding a binary that should check Updates, set `OTA_PLATFORM=android` or `ios` so `app.config.js` bakes the matching Pages manifest URL.
 
 Regenerate native projects when config changed:
 

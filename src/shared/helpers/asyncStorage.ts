@@ -39,3 +39,14 @@ export const saveStateBulk = async (
     logger.warn("[storage] saveStateBulk unavailable:", err);
   }
 };
+
+export const loadState = async <T = unknown>(
+  key: string,
+): Promise<T | undefined> => {
+  const bulk = await loadStateBulk([key]);
+  return bulk[key] as T | undefined;
+};
+
+export const saveState = async (key: string, value: unknown): Promise<void> => {
+  await saveStateBulk({ [key]: value });
+};

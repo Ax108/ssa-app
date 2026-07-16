@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react-native";
-import { CustomSplashScreen } from "@features/app/components/CustomSplashScreen";
+import { CustomSplashScreen } from "@modules/app/components/CustomSplashScreen";
 
-jest.mock("@features/app/components/BubbleLoader", () => ({
+jest.mock("@modules/app/components/BubbleLoader", () => ({
   BubbleLoader: () => null,
 }));
 
