@@ -7,7 +7,8 @@ How remote configuration, strings, and media reach the app.
 | Source | Role |
 |--------|------|
 | Website ([astrarudra/sadhan-sangha](https://github.com/astrarudra/sadhan-sangha)) | Editorial content that ships to production CDN |
-| CDN ([astrarudra/ssa-static](https://github.com/astrarudra/ssa-static)) | `https://astrarudra.github.io/ssa-static/prod/` |
+| CDN ([astrarudra/ssa-static](https://github.com/astrarudra/ssa-static)) | `https://astrarudra.github.io/ssa-static/prod/` (content JSON + assets) |
+| CDN OTA path | `…/prod/mobile-app-ota/{android\|ios}/` — JS updates only ([ota-self-host.md](./ota-self-host.md)); **not** EAS Update |
 | Gist | Version bump used to invalidate cache |
 | Bundled seed | `src/assets/json/config.json`, `en.json`, `bn.json`, `hi.json` |
 

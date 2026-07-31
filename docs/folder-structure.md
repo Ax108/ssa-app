@@ -12,7 +12,8 @@ ssa-app/
 ├── docs/                     # This documentation set
 ├── package.json              # Scripts, deps, engines
 ├── app.json                  # Expo app config (name, ids, plugins)
-├── app.config.js             # Wraps app.json — runtimeVersion + self-hosted OTA URL
+├── app.config.js             # Dynamic config — OTA URL + runtimeVersion on top of app.json
+├── eas.json                  # EAS Build / Submit profiles (not EAS Update)
 ├── index.ts                  # Metro entry → registerRootComponent
 ├── babel.config.js
 ├── metro.config.js
@@ -37,6 +38,7 @@ ssa-app/
 | Area | Rule |
 |------|------|
 | Config at root | Keep thin: Expo, Metro, ESLint, Jest, entry `index.ts` |
+| `eas.json` | Native cloud builds + store submit only; JS OTA stays on ssa-static |
 | `plugins/` | Expo config plugins only (e.g. Android intent queries) |
 | `assets/` | Store branding binaries referenced from `app.json` |
 | `android/` / `ios/` | Treat as output of `bun run prebuild`; regenerate when native deps/plugins change |

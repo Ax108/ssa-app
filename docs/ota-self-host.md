@@ -6,7 +6,9 @@ The app uses **`expo-updates`** with updates hosted on the same GitHub Pages CDN
 
 Folder layout and publish notes live in the static repo: `ssa-static/prod/mobile-app-ota/README.md` (served from GitHub Pages on the **`release`** branch).
 
-This does **not** require an EAS Update subscription. Content JSON (`config` / locale packs) remains on the separate gist + `prod/json/` pipeline.
+This does **not** require an EAS Update subscription. Native store binaries may still be built with **EAS Build** ([deployment-eas.md](./deployment-eas.md)); only the **JS update host** is custom. Content JSON (`config` / locale packs) remains on the separate gist + `prod/json/` pipeline.
+
+Do **not** configure EAS Update channels or change `updates.url` to Expo’s servers.
 
 ## Versioning (`app.json` vs `package.json`)
 
@@ -24,7 +26,7 @@ Optional Android/iOS store build numbers (`android.versionCode`, `ios.buildNumbe
 
 ## App config
 
-`app.config.js` (wraps `app.json`) sets:
+`app.config.js` (dynamic; Expo passes `app.json` as `config`) sets:
 
 | Field | Value |
 |-------|--------|
@@ -33,7 +35,13 @@ Optional Android/iOS store build numbers (`android.versionCode`, `ios.buildNumbe
 | `updates.checkAutomatically` | `ON_LOAD` |
 | plugin | `expo-updates` |
 
-Platform selection for the baked URL: env **`OTA_PLATFORM=android|ios`** (default **android**) at prebuild/release time. GitHub Pages cannot switch on `expo-platform` request headers, so each store binary points at one platform folder.
+Platform selection for the baked URL (evaluated each time Expo loads config):
+
+1. **`OTA_PLATFORM=android|ios`** — local prebuild / release override  
+2. **`EAS_BUILD_PLATFORM`** — set automatically by **EAS Build** cloud jobs  
+3. Default **`android`**
+
+GitHub Pages cannot switch on `expo-platform` request headers, so each store binary points at one platform folder under `prod/mobile-app-ota/{android|ios}/`.
 
 ## Runtime behaviour
 

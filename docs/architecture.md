@@ -30,6 +30,8 @@ Content (copy, image paths, links) comes from the **same CDN** as the website, w
 | Fonts | Freeman via `expo-font` | Brand typography (`CustomText`) |
 | Network | Native `fetch` via `oxyApi` | No axios / extra HTTP client |
 | Dev client | `expo-dev-client` | Custom native binary required |
+| Store binaries | **EAS Build / Submit** | Cloud AAB/IPA — see [deployment-eas.md](./deployment-eas.md) |
+| JS OTA | **Self-hosted** `expo-updates` → ssa-static Pages | Not EAS Update — see [ota-self-host.md](./ota-self-host.md) |
 
 ## Navigation model
 
@@ -41,10 +43,10 @@ NavigationContainer (ref = navigationRef)
    └─ bottomTab → BottomTabShell
       ├─ AppTopNavbar          ← static chrome (outside screen animation)
       └─ BottomTabs (ONE RN tab) + custom AppBottomTabBar
-         └─ BottomStack → home | ashram | satsang | gallery | contact
+         └─ BottomStack → home | ashram | satsang | gallery | contact | donation
 ```
 
-The five destinations are **stack screens** behind a custom tab bar — **not** five React Navigation tab screens. Tab presses push / pop the nested stack.
+The five **tab** destinations are **stack screens** behind a custom tab bar — **not** five React Navigation tab screens. **Donation** is stack-only (no tab). Tab presses push / pop / reuse the nested stack.
 
 Key files:
 
@@ -52,12 +54,12 @@ Key files:
 |------|------|
 | `src/modules/navigation/NavStackMain.tsx` | Root stack + tab shell |
 | `src/modules/navigation/navigationRef.ts` | Container ref (top-bar back outside BottomStack) |
-| `src/modules/navigation/helpers/bottomStackNav.ts` | Find stack / pop / reset helpers |
-| `src/modules/navigation/components/BottomStack.tsx` | Nested stack of five screens |
+| `src/modules/navigation/helpers/bottomStackNav.ts` | Find stack / pop / reset + **`decideBottomStackNav`** (dedupe) |
+| `src/modules/navigation/components/BottomStack.tsx` | Nested stack of tab screens + donation |
 | `src/modules/navigation/components/AppBottomTabBar.tsx` | Custom tab UI (Material icon names) |
 | `src/modules/navigation/components/AppTopNavbar.tsx` | Brand title + back (`navigationRef.goBack`) |
 | `src/modules/navigation/types/nav_types.ts` | Route names / params |
-| `src/shared/hooks/useNavigateTab.ts` | In-screen navigate → stack `push` / `popToTop` |
+| `src/shared/hooks/useNavigateTab.ts` | In-screen navigate → reuse existing stack entry or `push` / `popToTop` |
 
 ### Back / gesture behavior
 
@@ -115,12 +117,12 @@ Screens read config/texts through the store; they should not hardcode long copy 
 
 | Screen | Module folder | Notes |
 |--------|---------------|-------|
-| Home | `modules/home` | `GurujiRow`, `HomeHero`, teasers, Follow Us, **Donate section**, Find Us, footer |
-| Ashram | `modules/ashram` | Hero → CDN markdown → album preview → Gallery CTA → Follow Us |
+| Home | `modules/home` | Guru row, hero, teasers, Follow Us, **DonateTeaserSection**, Find Us, footer |
+| Ashram | `modules/ashram` | Hero → CDN markdown → album preview → Gallery CTA → Follow Us → Donate teaser |
 | Satsang | `modules/satsang` | YT thumb hero + playlists + Also Available At; `sectionsFromMarkdown`; opens YouTube/Spotify externally (**no WebView iframes**) |
 | Gallery | `modules/gallery` | FlashList + lightbox |
-| Contact | `modules/contact` | Reach-us cards, map, Shiva, Follow Us, footer |
-| Donation | `modules/donation` | Stack-only (Home CTA + footer); bank copy rows + clipboard |
+| Contact | `modules/contact` | Reach-us cards, map, Shiva, Follow Us → Donate teaser, footer |
+| Donation | `modules/donation` | Stack-only (teaser CTAs + footer); bank copy rows + clipboard |
 
 External URLs use `openExternalUrl` (`src/shared/utils/openUrl.ts`) — system browser / maps / dialer.
 
@@ -133,6 +135,7 @@ External URLs use `openExternalUrl` (`src/shared/utils/openUrl.ts`) — system b
 | `ScreenScroll` | Consistent scroll screen wrapper |
 | `SectionDivider` / `SSADivider` | Section breaks (plain / ornate SVG) |
 | `FollowUsSection` | Shared social grid (Home / Ashram / Contact) |
+| `DonateTeaserSection` | Shared donate card under Follow Us (Home / Ashram / Contact) |
 | `AppFooterStrip` | Footer links + Donate; developer credit overridden to **AstraX** |
 | `LanguageSwitcher` | Top-nav locale switch (`en` / `bn` / `hi`) |
 | `StoreUpdateSnackbar` | Global store-binary update prompt (post-splash) |

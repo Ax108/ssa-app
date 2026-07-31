@@ -37,8 +37,12 @@ Do not mix `npm install` / `yarn` into the same tree unless you intentionally mi
 | `ota:export:android` | Export JS OTA → [ssa-static](https://github.com/astrarudra/ssa-static) `prod/mobile-app-ota/android/` |
 | `ota:export:ios` | Export JS OTA → `prod/mobile-app-ota/ios/` |
 | `ota:export:all` | Export both platforms (android then ios) |
+| `eas:build:android` / `:ios` / `:all` | EAS production Build (AAB / IPA) — login required |
+| `eas:build:dev:android` / `:ios` | EAS **development** profile (dev-client APK / iOS simulator) |
+| `eas:submit:android` / `:ios` | EAS Submit to Play / App Store Connect |
 
-OTA details (versioning, when to bump `app.json`, Metro vs binary): **[ota-self-host.md](./ota-self-host.md)**.
+OTA details (versioning, when to bump `app.json`, Metro vs binary): **[ota-self-host.md](./ota-self-host.md)**.  
+EAS Build/Submit (not EAS Update): **[deployment-eas.md](./deployment-eas.md)**.
 
 ## When to rebuild native vs reload JS
 

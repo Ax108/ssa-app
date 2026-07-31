@@ -48,10 +48,18 @@ bun run prebuild:android  # Android-only clean prebuild
 bun run ota:export:android  # Stage Android OTA into astrarudra/ssa-static
 bun run ota:export:ios      # Stage iOS OTA
 bun run ota:export:all      # Both platforms
+bun run eas:build:android   # EAS production AAB (requires eas login)
+bun run eas:build:ios       # EAS production IPA
+bun run eas:build:dev:android  # EAS development APK (dev-client)
+bun run eas:build:dev:ios      # EAS development iOS (simulator profile)
+bun run eas:submit:android  # Submit latest Android production build to Play
+bun run eas:submit:ios      # Submit latest iOS production build to App Store Connect
 bun run verify            # lint + tsc + tsc:app + jest
 bun run test              # Jest only
 bun run doctor            # expo-doctor
 ```
+
+JS OTA is self-hosted ([docs/ota-self-host.md](./docs/ota-self-host.md)). EAS is for **native** store binaries only ([docs/deployment-eas.md](./docs/deployment-eas.md)) — not EAS Update.
 
 ## Related projects
 

@@ -17,7 +17,7 @@ How developers install tooling and run the app in development.
 Optional:
 
 - **WSL2** on Windows — used by scripts like `wsl:prebuild-android` / `build:android:wsl` if you prefer Linux Gradle.
-- **Expo account** — needed later for [EAS](./deployment-eas.md), not for local `run:android` / `run:ios`.
+- **Expo account** — needed for [EAS Build / Submit](./deployment-eas.md) (store AAB/IPA). Not required for local `run:android` / `run:ios`. JS OTA does **not** use EAS Update.
 
 This app uses a **development build** (`expo-dev-client`), not Expo Go. You must produce a native binary once, then use Metro against that client.
 

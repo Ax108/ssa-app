@@ -21,7 +21,7 @@ Confirm identity in `app.json`:
 
 Bump `expo.version` (and keep `package.json` `version` in sync) before each **store** upload. For JS-only fixes after a binary is shipped, use OTA instead — see [ota-self-host.md](./ota-self-host.md).
 
-When prebuilding a binary that should check Updates, set `OTA_PLATFORM=android` or `ios` so `app.config.js` bakes the matching Pages manifest URL.
+When prebuilding a binary that should check Updates, set `OTA_PLATFORM=android` or `ios` so `app.config.js` bakes the matching Pages manifest URL. EAS cloud builds set `EAS_BUILD_PLATFORM` automatically (same effect) — see [deployment-eas.md](./deployment-eas.md).
 
 Regenerate native projects when config changed:
 

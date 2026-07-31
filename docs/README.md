@@ -17,7 +17,7 @@ Start here if you are new to the repo.
 ## Shipping
 
 7. **[deployment-local.md](./deployment-local.md)** — APK / AAB / Xcode archives without EAS.
-8. **[deployment-eas.md](./deployment-eas.md)** — EAS Build and store submit for Android and iOS.
+8. **[deployment-eas.md](./deployment-eas.md)** — EAS Build / Submit for store binaries (OTA stays on ssa-static).
 9. **[ota-self-host.md](./ota-self-host.md)** — Self-hosted JS OTA via `ssa-static` (`ota:export:android` / `:ios` / `:all`).
 
 Parent overview: [../README.md](../README.md).
