@@ -56,4 +56,11 @@ SVG and awkward native modules are stubbed under `src/tests/__mocks__/` and `jes
 
 ## CI expectation
 
-Locally and in CI (if configured), green `bun verify` is the minimum. Native builds (`android` / `ios` / EAS) are separate from the Jest gate.
+GitHub Actions: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on pushes and PRs to `main` / `develop`.
+
+| Job | Command | Blocking |
+|-----|---------|----------|
+| Lint, typecheck & tests | `bun install --frozen-lockfile` then `bun verify` | Yes |
+| Dependency audit | `bun audit` | No (`continue-on-error`) |
+
+Locally, green `bun verify` is the same gate. Native builds (`android` / `ios` / EAS) are separate from this workflow.
