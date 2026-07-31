@@ -2,7 +2,7 @@
 
 Cloud **native** builds and store submission with [Expo Application Services](https://docs.expo.dev/eas/).
 
-This repo is paved for **EAS Build + EAS Submit only**.
+This repo is already set up for **EAS Build + EAS Submit only**.
 
 **JS OTA stays on our own CDN** (`ssa-static` / GitHub Pages via `expo-updates`) — see [ota-self-host.md](./ota-self-host.md). Do **not** run `eas update`, do **not** add EAS Update channels, and do **not** point `updates.url` at Expo’s servers.
 
@@ -12,12 +12,12 @@ This repo is paved for **EAS Build + EAS Submit only**.
 | Store upload | **EAS Submit** (this doc) |
 | JS hotfixes after a binary ships | **Self-hosted OTA** ([ota-self-host.md](./ota-self-host.md)) |
 
-Committed road: `eas.json`, `app.config.js` (OTA URL from `EAS_BUILD_PLATFORM` / `OTA_PLATFORM`), SDK packages already in the repo (`expo`, `expo-dev-client`, `expo-updates`, …).  
+Already in the repository: `eas.json`, `app.config.js` (OTA URL from `EAS_BUILD_PLATFORM` / `OTA_PLATFORM`), and the required SDK packages (`expo`, `expo-dev-client`, `expo-updates`, …).  
 The person shipping the store build only needs Expo login + store credentials.
 
 ---
 
-## What the driver does (after `git clone`)
+## Release engineer steps (after `git clone`)
 
 ```bash
 cd ssa-app   # https://github.com/Ax108/ssa-app
@@ -148,14 +148,14 @@ Details: [ota-self-host.md](./ota-self-host.md).
 
 ---
 
-## What is already paved (do not reinvent)
+## What is already configured (do not reinvent)
 
 - **`eas.json`** — build + submit profiles (no EAS Update block)
 - **`app.config.js`** — self-hosted `updates.url` + `runtimeVersion.policy: appVersion`
 - **`expo-updates`**, **`expo-dev-client`**, **`expo-build-properties`** — already in dependencies
 - Package manager scripts under `eas:*` in `package.json`
 
-## What is intentionally not paved
+## What is intentionally not included
 
 - EAS Update / `eas update` / update channels
 - Checked-in keystores, `.p8`, Play JSON, or API keys
@@ -170,7 +170,7 @@ Details: [ota-self-host.md](./ota-self-host.md).
 | Play AAB without local signing | **EAS** Android `production` |
 | JS-only fix after binary is out | **Self-hosted OTA**, not a new EAS build |
 
-## Release checklist (driver)
+## Release checklist
 
 - [ ] `bun verify` green on the commit you build
 - [ ] `eas init` done; `projectId` committed if new
