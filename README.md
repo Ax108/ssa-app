@@ -24,11 +24,11 @@ Full setup (tooling, emulators, WSL notes): **[docs/getting-started.md](./docs/g
 ### Local Google Play AAB (no EAS)
 
 1. Copy `.env.example` → `.env` and set `ANDROID_UPLOAD_*` (keystore under `credentials/`, gitignored).
-2. `OTA_PLATFORM=android bun run prebuild:android` — plugin injects release signing.
+2. `bun run prebuild:android` — sets OTA to android and injects release signing.
 3. `cd android && ./gradlew bundleRelease`
 4. Upload `android/app/build/outputs/bundle/release/app-release.aab` in Play Console.
 
-Details: **[docs/deployment-local.md](./docs/deployment-local.md)**. Back up `.env` and `credentials/` offline.
+Local iOS (Mac): `bun run prebuild:ios` then Xcode Archive — see **[docs/deployment-local.md](./docs/deployment-local.md)**. Back up `.env` and `credentials/` offline.
 
 ## Documentation
 

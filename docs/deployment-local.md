@@ -1,8 +1,13 @@
 # Local release & deployment (Android + iOS)
 
-Build store-ready binaries **on your machine** (no EAS cloud builders). For cloud AAB/IPA, see [deployment-eas.md](./deployment-eas.md).
+Build store-ready binaries **on your machine** (no EAS cloud builders). Optional cloud path: [deployment-eas.md](./deployment-eas.md).
 
-**Platforms covered:** Android (Google Play) and iOS (App Store / TestFlight). iOS archives require **macOS + Xcode** (or use EAS).
+**Both platforms are first-class.** Shipping Android-only today does not remove iOS support — the same app builds for iOS on a Mac with the steps below.
+
+| Platform | Local store machine | Store artifact |
+|----------|---------------------|----------------|
+| Android | Windows or macOS | **`.aab`** → Google Play |
+| iOS | **macOS + Xcode only** | Archive / IPA → App Store Connect |
 
 ---
 
@@ -11,7 +16,7 @@ Build store-ready binaries **on your machine** (no EAS cloud builders). For clou
 | Store | Artifact | How this doc produces it |
 |-------|----------|--------------------------|
 | **Google Play** | Android App Bundle **`.aab`** | `./gradlew bundleRelease` (not APK) |
-| **App Store / TestFlight** | Signed archive → **IPA** via Xcode Organizer | Product → Archive → Distribute App |
+| **App Store / TestFlight** | Distribution archive → upload via Xcode Organizer | Product → Archive → Distribute App |
 
 | Not for store upload | Use instead |
 |----------------------|-------------|
@@ -39,27 +44,44 @@ bun verify
 
 JS-only fixes after a binary ships: do **not** bump version — use OTA ([ota-self-host.md](./ota-self-host.md)).
 
-### OTA URL when prebuilding
+### OTA URL (automatic per prebuild script)
 
-`app.config.js` bakes a platform-specific Pages manifest URL.
+`app.config.js` bakes:
 
-| Goal | Command / env |
-|------|----------------|
-| Android binary checks Android OTA | `OTA_PLATFORM=android bun run prebuild:android` (or default `android`) |
-| iOS binary checks iOS OTA | `OTA_PLATFORM=ios bun run prebuild:ios` |
-| EAS cloud builds | `EAS_BUILD_PLATFORM` set automatically — [deployment-eas.md](./deployment-eas.md) |
+`https://astrarudra.github.io/ssa-static/prod/mobile-app-ota/{android|ios}/manifest.json`
+
+| Command | OTA platform baked in |
+|---------|------------------------|
+| `bun run prebuild:android` | **android** (`OTA_PLATFORM=android` set by the script) |
+| `bun run prebuild:ios` | **ios** (script sets `OTA_PLATFORM=ios`; **macOS only**, skips on Windows) |
+| `bun run prebuild` | Android, then iOS (iOS step no-ops on non-Mac) |
+
+You do **not** need `OTA_PLATFORM` in `.env`. Do **not** put a fixed `OTA_PLATFORM` in `.env` — it would force one platform for every config load.
+
+Resolution order in `app.config.js`: script/env `OTA_PLATFORM` → `EAS_BUILD_PLATFORM` → CLI `--platform` → default `android`.
+
+### Config plugins — what runs where
+
+| Plugin | Android prebuild | iOS prebuild |
+|--------|------------------|--------------|
+| `withAndroidReleaseSigning` (`.env` upload key) | Yes | No (Android-only) |
+| `withAndroidLinkingQueries` | Yes | No — iOS uses `ios.infoPlist.LSApplicationQueriesSchemes` in `app.json` |
+| `withGradleJvmArgs` | Yes | No |
+| `expo-splash-screen` / `expo-font` / `expo-image` / `expo-updates` | Yes | Yes |
+
+**iOS has no `.env` keystore plugin.** Apple signing is done in **Xcode** (team + distribution cert / profile), not via Gradle.
 
 ### Regenerate native projects
 
 ```bash
-bun run prebuild              # both (ios/ useful on macOS)
-bun run prebuild:android
-bun run prebuild:ios          # macOS
+bun run prebuild:android   # Windows or Mac — Play / Android work
+bun run prebuild:ios       # Mac only — App Store work
+bun run prebuild           # android then ios (ios skipped on Windows)
 ```
 
 Do **not** hand-edit `android/` or `ios/` for product features. Change `app.json` / plugins, then prebuild.
 
-**CNG note:** `prebuild --clean` regenerates native folders. Android Play signing is re-injected automatically from `.env` via `withAndroidReleaseSigning` — no manual `android/` edits for signing.
+**CNG:** `prebuild --clean` regenerates natives. Android Play signing is re-injected from `.env` via `withAndroidReleaseSigning`.
 
 ---
 
@@ -104,17 +126,19 @@ The config plugin `plugins/android/withAndroidReleaseSigning.js` reads these on 
 
 If `.env` keys are missing, prebuild still succeeds (debug signing) — release/Play AABs will not be correctly signed until `.env` is complete.
 
-### Step 3 — Prebuild (injects signing)
+Back up `.env` and `credentials/` offline — required for every future Play update with the same upload key.
+
+### Step 3 — Prebuild (OTA + signing)
 
 ```bash
-OTA_PLATFORM=android bun run prebuild:android
+bun run prebuild:android
 ```
 
-Confirm the plugin logged that release signing was injected (not the “Skipping release signing” warning).
+This sets `OTA_PLATFORM=android` automatically and injects release signing from `.env`.
+
+Confirm logs include `[withAndroidReleaseSigning] Injected signingConfigs.release` (not the skip warning).
 
 ### Step 4 — Build the AAB
-
-From the repo root:
 
 ```bash
 cd android
@@ -125,10 +149,6 @@ cd android
 **Output file (upload this):**
 
 `android/app/build/outputs/bundle/release/app-release.aab`
-
-If the build fails with signing / keystore errors, re-check `.env` and re-run prebuild.
-
-Official reference: [Expo — Create a release build locally](https://docs.expo.dev/guides/local-app-production/).
 
 ### Step 5 — Upload to Google Play Console
 
@@ -142,8 +162,6 @@ First listing also needs store listing, content rating, privacy policy, and rela
 
 ### Android APK (sideload / QA only — not Play)
 
-After the same signing setup:
-
 ```bash
 bun run android:release
 # or: cd android && ./gradlew assembleRelease
@@ -155,12 +173,12 @@ Typical path: `android/app/build/outputs/apk/release/app-release.apk`
 
 - [ ] `bun verify` green
 - [ ] `expo.version` / `package.json` version bumped (store release only)
-- [ ] `OTA_PLATFORM=android` prebuild completed
-- [ ] Upload keystore + `.env` configured; prebuild injected release signing
+- [ ] `android.versionCode` higher than last Play upload (if any)
+- [ ] `.env` + keystore configured; `bun run prebuild:android` injected signing
 - [ ] `bundleRelease` produced **`app-release.aab`**
 - [ ] AAB uploaded in Play Console
 - [ ] Physical-device smoke test (CDN, tabs, donate, tel/mailto/maps)
-- [ ] Matching OTA published ([ota-self-host.md](./ota-self-host.md))
+- [ ] OTA published for android (or `ota:export:all`) — [ota-self-host.md](./ota-self-host.md)
 
 ---
 
@@ -168,26 +186,49 @@ Typical path: `android/app/build/outputs/apk/release/app-release.apk`
 
 Goal: a **distribution-signed** archive uploaded to App Store Connect (TestFlight → App Review → release).
 
-Windows cannot produce a store IPA locally. Use a Mac + Xcode, or **EAS** ([deployment-eas.md](./deployment-eas.md)).
+**Windows cannot produce a store IPA.** Use a Mac with Xcode for this section (EAS is optional and not required).
 
-Requires: Apple Developer Program membership, Xcode, CocoaPods.
+Requires: **macOS**, Xcode (latest stable), CocoaPods, **Apple Developer Program** membership, App Store Connect access for the app.
 
-### Step 1 — Version + prebuild
+### What is already configured in the repo (no Android-style `.env` key)
 
-1. Bump `app.json` → `expo.version` and `package.json` → `version` (same string).
-2. Generate natives with the iOS OTA URL:
+| Item | Where |
+|------|--------|
+| Bundle id | `app.json` → `ios.bundleIdentifier` = `com.astrax.sadhansangha` |
+| Linking schemes (https/tel/mailto) | `app.json` → `ios.infoPlist.LSApplicationQueriesSchemes` |
+| OTA URL for iOS binary | `bun run prebuild:ios` sets `OTA_PLATFORM=ios` automatically |
+| Splash / fonts / image / updates | Shared Expo plugins (same as Android) |
+
+Apple **distribution certificates and provisioning profiles** are **not** in git. Xcode (or the Apple Developer portal) creates them when you sign in with the team that owns the app.
+
+### Step 1 — Version bump
+
+On the Mac, same as Android: bump `app.json` → `expo.version` and `package.json` → `version` (same string).
+
+Optionally set `ios.buildNumber` in `app.json` if App Store Connect requires a higher build than the last upload (string, e.g. `"1"`, `"2"`).
+
+### Step 2 — Prebuild (bakes iOS OTA URL)
 
 ```bash
-OTA_PLATFORM=ios bun run prebuild:ios
+bun install
+bun verify
+bun run prebuild:ios
 ```
 
-### Step 2 — CocoaPods
+`prebuild:ios` sets `OTA_PLATFORM=ios` so `updates.url` points at  
+`…/mobile-app-ota/ios/manifest.json` — you do not set this in `.env`.
+
+Confirm `ios/` exists at the repo root after the command.
+
+### Step 3 — CocoaPods
 
 ```bash
 cd ios && pod install && cd ..
 ```
 
-### Step 3 — Open Xcode workspace
+If `pod` is missing: install CocoaPods (`sudo gem install cocoapods` or Homebrew), then retry.
+
+### Step 4 — Open Xcode workspace
 
 ```bash
 open ios/*.xcworkspace
@@ -195,60 +236,68 @@ open ios/*.xcworkspace
 
 Use the **`.xcworkspace`**, not the `.xcodeproj`.
 
-### Step 4 — Signing (distribution)
+### Step 5 — Signing (distribution) in Xcode
 
-1. Select target **Sadhan Sangha Ashram** / bundle id `com.astrax.sadhansangha`.
-2. **Signing & Capabilities** → Team = Apple Developer team.
-3. Enable **Automatically manage signing** (or install a matching **App Store / Distribution** provisioning profile).
-4. Confirm the signing certificate is **Apple Distribution** (not Development-only) for store archives.
+1. Select the project → target **Sadhan Sangha Ashram** (bundle id `com.astrax.sadhansangha`).
+2. **Signing & Capabilities**:
+   - Team = your **Apple Developer** team
+   - Enable **Automatically manage signing** (typical), or install a matching **App Store** provisioning profile manually
+3. For store archives, the signing certificate must be **Apple Distribution** (Development-only is not enough for App Store upload).
+4. Resolve any bundle-id / capability errors Xcode shows before archiving.
 
-### Step 5 — Archive
+There is no Gradle keystore step on iOS. Do **not** expect `withAndroidReleaseSigning` to run here.
 
-1. Scheme: **Release** (or the app scheme configured for Release).
-2. Destination: **Any iOS Device (arm64)** — not a simulator.
-3. **Product → Archive**.
-4. Wait for Organizer to open with the new archive.
+### Step 6 — Archive (store binary)
 
-### Step 6 — Distribute to App Store Connect
+1. Scheme: app scheme in **Release** configuration.
+2. Destination: **Any iOS Device (arm64)** — **not** a Simulator.
+3. Menu: **Product → Archive**.
+4. Wait until **Organizer** opens with the new archive.
 
-1. In Organizer → select the archive → **Distribute App**.
-2. Choose **App Store Connect** → Upload (or Export IPA for a later upload).
-3. Follow prompts (distribution options, signing).
-4. After processing in App Store Connect, assign the build to **TestFlight**, smoke-test, then submit for **App Review** when ready.
+### Step 7 — Distribute to App Store Connect
 
-Official reference: [Expo — Manually submit an iOS app](https://docs.expo.dev/submit/ios-manual/).
+1. Organizer → select the archive → **Distribute App**.
+2. Choose **App Store Connect** → **Upload** (or Export IPA for a later Transporter upload).
+3. Follow the signing / destination prompts.
+4. In [App Store Connect](https://appstoreconnect.apple.com): wait for processing → add build to **TestFlight** → smoke-test → submit for **App Review** when ready.
 
-### Debug (simulator / device) — not for store
+Official walkthrough: [Expo — Manually submit an iOS app](https://docs.expo.dev/submit/ios-manual/).
+
+### Debug on Mac (not for store)
 
 ```bash
-OTA_PLATFORM=ios bun run prebuild:ios
+bun run prebuild:ios
 bun run ios
-bun run start   # Metro, if using dev-client
+bun run start   # Metro with expo-dev-client, if used
 ```
 
-### iOS checklist
+### iOS checklist (use this on Mac release day)
 
-- [ ] Mac + Xcode + Apple Developer Program membership
+- [ ] Mac + Xcode + Apple Developer Program + App Store Connect access
 - [ ] `bun verify` green
 - [ ] `expo.version` / `package.json` version bumped (store release only)
-- [ ] `OTA_PLATFORM=ios` prebuild completed
-- [ ] Bundle id `com.astrax.sadhansangha`
-- [ ] Distribution signing configured
-- [ ] Archive uploaded to App Store Connect
+- [ ] `bun run prebuild:ios` completed (OTA URL is iOS automatically)
+- [ ] `pod install` succeeded
+- [ ] Opened **`.xcworkspace`**
+- [ ] Bundle id `com.astrax.sadhansangha`; distribution signing OK
+- [ ] Archive from **Any iOS Device** (not simulator)
+- [ ] Uploaded to App Store Connect / TestFlight
 - [ ] TestFlight smoke test (CDN, tabs, donate, tel/mailto/maps)
-- [ ] Privacy / usage strings updated if new restricted APIs are added
-- [ ] Matching OTA published ([ota-self-host.md](./ota-self-host.md))
+- [ ] Privacy / usage strings updated if new restricted APIs were added
+- [ ] OTA published for ios (or `ota:export:all`) — [ota-self-host.md](./ota-self-host.md)
 
 ---
 
 ## After either store binary ships
 
-Publish JS OTA for the **same** `expo.version` on both platforms when both stores are in use:
+Publish JS OTA for the **same** `expo.version`. If both stores are live, export **both** platforms:
 
 ```bash
 bun run ota:export:all
 # commit + push astrarudra/ssa-static (main → release for GitHub Pages)
 ```
+
+Android-only for now: `bun run ota:export:android` is enough until the first iOS binary ships; then use `:all`.
 
 See [ota-self-host.md](./ota-self-host.md).
 
@@ -259,15 +308,17 @@ See [ota-self-host.md](./ota-self-host.md).
 | Goal | Android | iOS |
 |------|---------|-----|
 | Daily development | `bun run android` | `bun run ios` (macOS) |
+| Prebuild + correct OTA URL | `bun run prebuild:android` | `bun run prebuild:ios` |
+| Release signing | `.env` + Android plugin | Xcode Apple Distribution |
 | QA sideload | Release APK | Ad Hoc / TestFlight |
 | Store upload | **`.aab`** → Play Console | Archive → App Store Connect |
-| No Mac | Local Android OK | Use **EAS** for IPA |
-| JS-only update | OTA — [ota-self-host.md](./ota-self-host.md) | Same (export **both** platforms) |
+| No Mac | Local Android OK | Need a Mac (or optional EAS) |
+| JS-only update | OTA | OTA (export matching platforms) |
 
 ---
 
 ## Credentials safety
 
 - Never commit keystores (`.keystore` / `.jks`), `.env`, `credentials.json`, provisioning profiles, or distribution `.p12` files.
-- Prefer `.env` + `plugins/android/withAndroidReleaseSigning.js` for Android release signing (see above).
-- Document Play Console and Apple Developer account owners outside this repo.
+- Android: `.env` + `credentials/` + `withAndroidReleaseSigning` (back up offline).
+- iOS: Apple team certs/profiles live in Keychain / Apple Developer — document who owns the team outside this repo.

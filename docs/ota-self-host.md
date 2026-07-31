@@ -37,11 +37,12 @@ Optional Android/iOS store build numbers (`android.versionCode`, `ios.buildNumbe
 
 Platform selection for the baked URL (evaluated each time Expo loads config):
 
-1. **`OTA_PLATFORM=android|ios`** — local prebuild / release override  
+1. **`OTA_PLATFORM=android|ios`** — set automatically by `bun run prebuild:android` / `prebuild:ios` (do not put a fixed value in `.env`)
 2. **`EAS_BUILD_PLATFORM`** — set automatically by **EAS Build** cloud jobs  
-3. Default **`android`**
+3. Infer `--platform` / `-p` from the Expo CLI argv  
+4. Default **`android`**
 
-GitHub Pages cannot switch on `expo-platform` request headers, so each store binary points at one platform folder under `prod/mobile-app-ota/{android|ios}/`.
+GitHub Pages cannot switch on `expo-platform` request headers, so each store binary points at one platform folder under `prod/mobile-app-ota/{android|ios}/`. Always prebuild with the platform-specific script before a store binary.
 
 ## Runtime behaviour
 
