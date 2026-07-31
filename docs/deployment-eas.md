@@ -1,23 +1,37 @@
 # EAS Build & Submit (Android + iOS)
 
-Cloud **native** builds and store submission with [Expo Application Services](https://docs.expo.dev/eas/).
+Cloud **native** builds and store submission via [Expo Application Services](https://docs.expo.dev/eas/).
 
-This repo is already set up for **EAS Build + EAS Submit only**.
+**Scope of this repo:** EAS Build + EAS Submit only.
 
-**JS OTA stays on our own CDN** (`ssa-static` / GitHub Pages via `expo-updates`) — see [ota-self-host.md](./ota-self-host.md). Do **not** run `eas update`, do **not** add EAS Update channels, and do **not** point `updates.url` at Expo’s servers.
+**Out of scope:** EAS Update. JS OTA is self-hosted on GitHub Pages (`ssa-static`). See [ota-self-host.md](./ota-self-host.md).
 
-| Concern | Who owns it |
-|---------|-------------|
-| Native binaries (AAB / IPA / APK) | **EAS Build** (this doc) |
-| Store upload | **EAS Submit** (this doc) |
-| JS hotfixes after a binary ships | **Self-hosted OTA** ([ota-self-host.md](./ota-self-host.md)) |
+| Concern | System |
+|---------|--------|
+| Android `.aab` / iOS `.ipa` | EAS Build (this doc) |
+| Upload to Play / App Store Connect | EAS Submit (this doc) |
+| JS hotfixes after a binary ships | Self-hosted OTA ([ota-self-host.md](./ota-self-host.md)) |
 
-Already in the repository: `eas.json`, `app.config.js` (OTA URL from `EAS_BUILD_PLATFORM` / `OTA_PLATFORM`), and the required SDK packages (`expo`, `expo-dev-client`, `expo-updates`, …).  
-The person shipping the store build only needs Expo login + store credentials.
+**Already in the repo:** `eas.json`, `app.config.js`, `eas:*` scripts, `expo` / `expo-dev-client` / `expo-updates`.
+
+**Release engineer still provides:** Expo login, Play + Apple credentials (not stored in git).
 
 ---
 
-## Release engineer steps (after `git clone`)
+## Artifacts by platform
+
+| Platform | Profile | Output | Store |
+|----------|---------|--------|--------|
+| Android | `production` | **`.aab`** (`buildType: app-bundle`) | Google Play |
+| iOS | `production` | **`.ipa`** (store / TestFlight) | App Store Connect |
+| Android | `development` / `preview` | **`.apk`** | Sideload / internal QA |
+| iOS | `development` | Simulator build (`simulator: true`) | Local QA only |
+
+Production commands bake the correct OTA URL automatically: EAS sets `EAS_BUILD_PLATFORM` to `android` or `ios` during the cloud build (`app.config.js`).
+
+---
+
+## Prerequisites (once)
 
 ```bash
 cd ssa-app   # https://github.com/Ax108/ssa-app
@@ -25,166 +39,159 @@ bun install
 bun verify
 ```
 
-### 1. Expo account + link project (once per machine / org)
-
-1. Create/join an Expo account: [https://expo.dev](https://expo.dev)
-2. CLI (no global install required):
+### Expo project
 
 ```bash
 bunx eas-cli@latest login
 bunx eas-cli@latest whoami
-```
-
-3. Link this repo to an EAS project (writes `extra.eas.projectId` into the app config — **commit that change** so teammates share the same project):
-
-```bash
 bunx eas-cli@latest init
 ```
 
-Keep `slug` as in `app.json`: `astrax-sadhan-sangha-app`.
+- Keep `slug`: `astrax-sadhan-sangha-app` (`app.json`).
+- Commit `extra.eas.projectId` after `init` so the team shares one project.
 
-### 2. Store credentials (once)
+### Credentials
 
-**Android (Play AAB signing):**
+| Platform | Command | Requires |
+|----------|---------|----------|
+| Android | `bunx eas-cli@latest credentials -p android` | Play Console access; EAS-managed or uploaded keystore (no `.jks` in git) |
+| iOS | `bunx eas-cli@latest credentials -p ios` | Apple Developer Program; distribution certs / profiles (App Store Connect API key recommended) |
 
-```bash
-bunx eas-cli@latest credentials -p android
-```
+---
 
-Generate a new keystore on EAS or upload an existing one. Prefer EAS-managed so no `.jks` lives in the repo.
+## Versioning before a store release
 
-**iOS (Apple Developer):**
+Bump **both** (same string):
 
-```bash
-bunx eas-cli@latest credentials -p ios
-```
+- `app.json` → `expo.version` (user-facing + OTA `runtimeVersion`)
+- `package.json` → `version`
 
-Needs an Apple Developer Program team. EAS can manage certs/profiles (App Store Connect API key recommended).
+With `"appVersionSource": "remote"` in `eas.json`, EAS owns **`android.versionCode`** and **`ios.buildNumber`**. Do not manage those integers in `app.json` unless you switch to `"local"`.
 
-Also need Play Console / App Store Connect access for **submit**.
+Content/CDN gist versioning is separate — [content-and-cdn.md](./content-and-cdn.md).
 
-### 3. Version before a store build
+---
 
-Bump **both** before production:
+## Build
 
-- `app.json` → `expo.version`
-- `package.json` → `version` (keep equal by convention)
+Profiles live in committed `eas.json`.
 
-Optional: with `"appVersionSource": "remote"` in `eas.json`, EAS can own native build numbers — see [EAS versioning](https://docs.expo.dev/build-reference/app-versions/).
-
-Content/CDN gist versioning stays separate — [content-and-cdn.md](./content-and-cdn.md).
-
-### 4. Build
-
-Profiles are defined in committed **`eas.json`**:
-
-| Profile | Use |
-|---------|-----|
-| `development` | `expo-dev-client` APK / iOS simulator for QA |
-| `preview` | Internal distribution APK |
-| `production` | Play **AAB** + store iOS IPA |
+### Production (store)
 
 ```bash
-# Android production → .aab (Play Store)
-bunx eas-cli@latest build -p android --profile production
-
-# iOS production → App Store / TestFlight IPA
-bunx eas-cli@latest build -p ios --profile production
-
-# Both
-bunx eas-cli@latest build --platform all --profile production
-
-# Dev client (internal)
-bunx eas-cli@latest build -p android --profile development
-bunx eas-cli@latest build -p ios --profile development
-```
-
-Or package scripts:
-
-```bash
+# Android → .aab
 bun run eas:build:android
-bun run eas:build:ios
-bun run eas:build:all
+# equivalent: bunx eas-cli@latest build -p android --profile production
 
-# Dev-client / internal QA (eas.json "development" profile)
-bun run eas:build:dev:android
-bun run eas:build:dev:ios
+# iOS → .ipa (App Store / TestFlight)
+bun run eas:build:ios
+# equivalent: bunx eas-cli@latest build -p ios --profile production
+
+# Both platforms
+bun run eas:build:all
 ```
 
-Watch the [Expo dashboard](https://expo.dev). Download artifacts from the build page.
+### Development / internal QA
 
-During the cloud build, `app.config.js` reads `EAS_BUILD_PLATFORM` so Android binaries get the Android OTA manifest URL and iOS binaries get the iOS URL — still on **ssa-static**, not EAS Update.
+```bash
+bun run eas:build:dev:android   # APK + expo-dev-client
+bun run eas:build:dev:ios       # iOS simulator profile
+```
 
-### 5. Submit to stores
+Monitor builds on [expo.dev](https://expo.dev). Download artifacts from the build page.
+
+---
+
+## Submit to stores
 
 After a successful **production** build:
 
 ```bash
-bunx eas-cli@latest submit -p android --profile production --latest
-bunx eas-cli@latest submit -p ios --profile production --latest
-```
-
-Or:
-
-```bash
+# Google Play
 bun run eas:submit:android
+# equivalent: bunx eas-cli@latest submit -p android --profile production --latest
+
+# App Store Connect (TestFlight → App Review → release)
 bun run eas:submit:ios
+# equivalent: bunx eas-cli@latest submit -p ios --profile production --latest
 ```
 
-Configure Play service-account JSON and/or App Store Connect API key when prompted (stored by EAS, not in git).
+When prompted, configure Play service-account JSON and/or App Store Connect API key (stored by EAS, not in git).
 
-Then finish rollout in Play Console / App Store Connect (TestFlight → review → release).
+Then complete rollout in:
 
-### 6. After a new store binary ships
-
-Publish a matching self-hosted OTA for that `expo.version` so CDN has a bundle for the new runtime:
-
-```bash
-bun run ota:export:all
-# commit + push astrarudra/ssa-static (main → release for Pages)
-```
-
-Details: [ota-self-host.md](./ota-self-host.md).
+- **Android:** Google Play Console (testing track → production)
+- **iOS:** App Store Connect (TestFlight → review → release)
 
 ---
 
-## What is already configured (do not reinvent)
+## After a new store binary ships
 
-- **`eas.json`** — build + submit profiles (no EAS Update block)
-- **`app.config.js`** — self-hosted `updates.url` + `runtimeVersion.policy: appVersion`
-- **`expo-updates`**, **`expo-dev-client`**, **`expo-build-properties`** — already in dependencies
-- Package manager scripts under `eas:*` in `package.json`
+Publish OTA for the **same** `expo.version` (both platforms):
 
-## What is intentionally not included
+```bash
+bun run ota:export:all
+# commit + push astrarudra/ssa-static (main → release for GitHub Pages)
+```
 
-- EAS Update / `eas update` / update channels
-- Checked-in keystores, `.p8`, Play JSON, or API keys
-- GitHub Actions that auto-build on every push (add later if the team wants CI)
+See [ota-self-host.md](./ota-self-host.md).
+
+---
+
+## Do / Do not
+
+| Do | Do not |
+|----|--------|
+| Use EAS for Android AAB and iOS IPA | Run `eas update` or add EAS Update channels |
+| Keep OTA on `ssa-static` Pages | Point `updates.url` at Expo’s update servers |
+| Bump `expo.version` + `package.json` version for store releases | Commit keystores, `.p8`, or Play JSON |
+| Export OTA for **android and ios** after a version bump | Assume one platform’s OTA covers the other |
+
+---
 
 ## Local vs EAS
 
 | Situation | Prefer |
 |-----------|--------|
-| Daily Android debug | Local `bun run android` ([deployment-local.md](./deployment-local.md)) |
-| Windows + need iOS binary | **EAS** iOS `production` / `development` |
-| Play AAB without local signing | **EAS** Android `production` |
-| JS-only fix after binary is out | **Self-hosted OTA**, not a new EAS build |
+| Daily Android debug | Local `bun run android` — [deployment-local.md](./deployment-local.md) |
+| Daily iOS debug | Local `bun run ios` on macOS — [deployment-local.md](./deployment-local.md) |
+| Windows + need iOS IPA | **EAS** `eas:build:ios` |
+| Play AAB without local signing | **EAS** `eas:build:android` |
+| JS-only fix (same `expo.version`) | Self-hosted OTA only — no new EAS build |
+
+---
 
 ## Release checklist
 
+### Shared
+
 - [ ] `bun verify` green on the commit you build
 - [ ] `eas init` done; `projectId` committed if new
-- [ ] Android / iOS credentials configured in EAS
-- [ ] `expo.version` (+ `package.json` version) bumped for store release
-- [ ] `eas build` production succeeded
-- [ ] `eas submit` completed (or AAB/IPA uploaded manually)
-- [ ] Smoke TestFlight / Play internal (tabs, CDN, donate, external links)
-- [ ] Matching **ssa-static** OTA published for the new runtime
+- [ ] `expo.version` and `package.json` `version` bumped (same string)
+- [ ] Matching **ssa-static** OTA published for the new runtime (`ota:export:all`)
+
+### Android
+
+- [ ] Android credentials configured in EAS
+- [ ] `eas:build:android` succeeded → **`.aab`** available
+- [ ] `eas:submit:android` completed (or AAB uploaded in Play Console)
+- [ ] Play internal / production smoke test (tabs, CDN, donate, tel/mailto/maps)
+
+### iOS
+
+- [ ] iOS credentials configured in EAS (Apple team)
+- [ ] `eas:build:ios` succeeded → **`.ipa`** available
+- [ ] `eas:submit:ios` completed (or IPA uploaded in App Store Connect)
+- [ ] TestFlight smoke test (tabs, CDN, donate, tel/mailto/maps)
+- [ ] App Review / release completed when ready
+
+---
 
 ## Official references
 
 - [EAS Build](https://docs.expo.dev/build/introduction/)
 - [EAS Submit](https://docs.expo.dev/submit/introduction/)
 - [App credentials](https://docs.expo.dev/app-signing/app-credentials/)
+- [App versions](https://docs.expo.dev/build-reference/app-versions/)
 - [Development builds](https://docs.expo.dev/develop/development-builds/introduction/)
-- Self-hosted OTA (this project): [ota-self-host.md](./ota-self-host.md)
+- Self-hosted OTA: [ota-self-host.md](./ota-self-host.md)

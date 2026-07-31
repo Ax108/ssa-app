@@ -22,7 +22,7 @@ Rules:
 - **JS-only OTA** — do **not** bump `expo.version`. Export and publish under the same runtime (e.g. still `1.0.0`). Store binaries already on that version will pick up the new JS.
 - **Native / store release** — bump **both** `app.json` → `expo.version` and `package.json` → `version` together (e.g. `1.0.0` → `1.0.1` or `1.1.0`), rebuild + submit to the store, **and** publish a matching OTA so the CDN has a bundle for the new runtime (see below).
 
-Optional Android/iOS store build numbers (`android.versionCode`, `ios.buildNumber`) are separate from OTA `runtimeVersion`; bump those for store submissions as usual.
+Optional Android/iOS store build numbers (`android.versionCode`, `ios.buildNumber`) are **not** OTA `runtimeVersion`. With EAS `"appVersionSource": "remote"`, EAS owns those integers — do not bump them in `app.json` unless you switch to `"local"`. See [deployment-eas.md](./deployment-eas.md).
 
 ## App config
 
@@ -102,7 +102,7 @@ git push
 
 ### JS-only (ship via OTA)
 
-UI, screens, Redux, helpers, assets that are part of the JS bundle, copy changes, bugfixes that do not add native modules.
+UI, screens, store helpers, assets in the JS bundle, copy changes, bugfixes that do not add native modules.
 
 - Keep `expo.version` / `package.json` version unchanged.
 - Run `ota:export:android`, `ota:export:ios`, or `ota:export:all`, then push `ssa-static`.
@@ -115,8 +115,8 @@ Examples: new Expo/React Native packages with native code, new config plugins, `
 OTA **cannot** install new native code into an old binary. You must:
 
 1. Bump **`app.json` `expo.version`** and **`package.json` `version`** to the new runtime (e.g. `1.0.1`).
-2. Rebuild natives (`prebuild` if you use CNG) and submit a **new store binary**.
-3. **Still publish JS to OTA** for that new runtime: `bun run ota:export:all` (or platform-specific) and push `ssa-static` so each platform’s `manifest.json` / bundles exist under the new `runtimeVersion`. Otherwise new installs only have the embedded bundle and have nothing useful on the CDN until the first OTA publish.
+2. Rebuild and submit **new store binaries for Android and iOS** (EAS or local — [deployment-eas.md](./deployment-eas.md) / [deployment-local.md](./deployment-local.md)).
+3. **Still publish JS OTA for both platforms** for that new runtime: `bun run ota:export:all` and push `ssa-static` so each of `android/` and `ios/` has `manifest.json` / bundles under the new `runtimeVersion`. Otherwise new installs only have the embedded bundle until the first OTA publish.
 
 Old binaries keep using the **previous** runtime’s OTA folder entry (same URL path, but the manifest’s `runtimeVersion` must match; clients ignore updates for a different runtime). After a bump, publish OTA for the **new** version; leave or overwrite platform folders according to your publish script (one active manifest per platform URL).
 
