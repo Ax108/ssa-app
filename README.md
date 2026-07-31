@@ -21,6 +21,15 @@ bun run start             # Metro with expo-dev-client
 
 Full setup (tooling, emulators, WSL notes): **[docs/getting-started.md](./docs/getting-started.md)**.
 
+### Local Google Play AAB (no EAS)
+
+1. Copy `.env.example` → `.env` and set `ANDROID_UPLOAD_*` (keystore under `credentials/`, gitignored).
+2. `OTA_PLATFORM=android bun run prebuild:android` — plugin injects release signing.
+3. `cd android && ./gradlew bundleRelease`
+4. Upload `android/app/build/outputs/bundle/release/app-release.aab` in Play Console.
+
+Details: **[docs/deployment-local.md](./docs/deployment-local.md)**. Back up `.env` and `credentials/` offline.
+
 ## Documentation
 
 | Doc | Topic |
@@ -32,9 +41,9 @@ Full setup (tooling, emulators, WSL notes): **[docs/getting-started.md](./docs/g
 | [docs/content-and-cdn.md](./docs/content-and-cdn.md) | Remote config / texts / assets |
 | [docs/ota-self-host.md](./docs/ota-self-host.md) | Self-hosted JS OTA via `ssa-static` |
 | [docs/development-workflow.md](./docs/development-workflow.md) | Day-to-day scripts and habits |
-| [docs/testing.md](./docs/testing.md) | Jest and `bun verify` |
-| [docs/deployment-local.md](./docs/deployment-local.md) | Local Android / iOS release builds |
-| [docs/deployment-eas.md](./docs/deployment-eas.md) | EAS Build / Submit (cloud) |
+| [docs/testing.md](./docs/testing.md) | Jest, `bun verify`, GitHub Actions CI |
+| [docs/deployment-local.md](./docs/deployment-local.md) | Local Play AAB (`.env` signing) + iOS Xcode archive |
+| [docs/deployment-eas.md](./docs/deployment-eas.md) | Optional EAS Build / Submit (cloud) |
 
 ## Useful scripts
 
@@ -42,24 +51,25 @@ Full setup (tooling, emulators, WSL notes): **[docs/getting-started.md](./docs/g
 bun run start             # Metro (dev client)
 bun run android           # Debug build + install (device/emulator)
 bun run ios               # iOS (macOS)
-bun run android:release   # Local Android release variant
-bun run prebuild          # Regenerate native projects
+bun run android:release   # Local Android release APK (sideload / QA — not Play AAB)
+bun run prebuild          # Regenerate native projects (injects Android signing from .env)
 bun run prebuild:android  # Android-only clean prebuild
 bun run ota:export:android  # Stage Android OTA into astrarudra/ssa-static
 bun run ota:export:ios      # Stage iOS OTA
 bun run ota:export:all      # Both platforms
-bun run eas:build:android   # EAS production AAB (requires eas login)
-bun run eas:build:ios       # EAS production IPA
-bun run eas:build:dev:android  # EAS development APK (dev-client)
-bun run eas:build:dev:ios      # EAS development iOS (simulator profile)
-bun run eas:submit:android  # Submit latest Android production build to Play
-bun run eas:submit:ios      # Submit latest iOS production build to App Store Connect
+bun run eas:build:android   # Optional: EAS production AAB (requires eas login)
+bun run eas:build:ios       # Optional: EAS production IPA
+bun run eas:build:dev:android  # Optional: EAS development APK (dev-client)
+bun run eas:build:dev:ios      # Optional: EAS development iOS (simulator profile)
+bun run eas:submit:android  # Optional: Submit latest EAS Android build to Play
+bun run eas:submit:ios      # Optional: Submit latest EAS iOS build to App Store Connect
 bun run verify            # lint + tsc + tsc:app + jest
 bun run test              # Jest only
 bun run doctor            # expo-doctor
 ```
 
-JS OTA is self-hosted ([docs/ota-self-host.md](./docs/ota-self-host.md)). EAS is for **native** store binaries only ([docs/deployment-eas.md](./docs/deployment-eas.md)) — not EAS Update.
+Local Play store file: after prebuild with `.env` set, run `cd android && ./gradlew bundleRelease` (see [docs/deployment-local.md](./docs/deployment-local.md)).  
+JS OTA is self-hosted ([docs/ota-self-host.md](./docs/ota-self-host.md)). EAS scripts are optional for cloud natives ([docs/deployment-eas.md](./docs/deployment-eas.md)) — not EAS Update.
 
 ## Related projects
 

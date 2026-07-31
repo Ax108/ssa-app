@@ -17,7 +17,7 @@ How developers install tooling and run the app in development.
 Optional:
 
 - **WSL2** on Windows — used by scripts like `wsl:prebuild-android` / `build:android:wsl` if you prefer Linux Gradle.
-- **Expo account** — needed for [EAS Build / Submit](./deployment-eas.md) (store AAB/IPA). Not required for local `run:android` / `run:ios`. JS OTA does **not** use EAS Update.
+- **Expo account** — only needed for optional [EAS Build / Submit](./deployment-eas.md). **Not** required for local debug or a local Play **AAB** (`.env` upload key + `./gradlew bundleRelease` — [deployment-local.md](./deployment-local.md)). JS OTA does **not** use EAS Update.
 
 This app uses a **development build** (`expo-dev-client`), not Expo Go. You must produce a native binary once, then use Metro against that client.
 
@@ -108,3 +108,5 @@ If the binary is missing Expo modules (e.g. after adding `expo-linear-gradient`)
 - [folder-structure.md](./folder-structure.md)
 - [development-workflow.md](./development-workflow.md)
 - [architecture.md](./architecture.md)
+- [deployment-local.md](./deployment-local.md) — local Play AAB (`.env` signing) and iOS archive
+- [testing.md](./testing.md) — `bun verify` and GitHub Actions CI

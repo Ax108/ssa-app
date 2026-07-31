@@ -59,7 +59,7 @@ bun run prebuild:ios          # macOS
 
 Do **not** hand-edit `android/` or `ios/` for product features. Change `app.json` / plugins, then prebuild.
 
-**CNG note:** `prebuild --clean` regenerates native folders. Re-apply Android signing edits after each clean prebuild (or keep passwords in `~/.gradle/gradle.properties` outside the repo).
+**CNG note:** `prebuild --clean` regenerates native folders. Android Play signing is re-injected automatically from `.env` via `withAndroidReleaseSigning` — no manual `android/` edits for signing.
 
 ---
 
@@ -69,87 +69,50 @@ Goal: a **signed** `app-release.aab` to upload in Play Console.
 
 Requires: JDK 17 (for `keytool` + Gradle), Android SDK / Android Studio as used for local Android builds.
 
-### Step 1 — Version + prebuild
+### Step 1 — Version bump
 
-1. Bump `app.json` → `expo.version` and `package.json` → `version` (same string).
-2. Generate natives with the Android OTA URL:
+Bump `app.json` → `expo.version` and `package.json` → `version` (same string) for a store release.
+
+For **local** Play uploads, also ensure `android.versionCode` in `app.json` (Expo maps it into Gradle) is higher than any AAB already on Play. First upload can use `1`.
+
+### Step 2 — Upload keystore + `.env` (once per machine)
+
+Google Play requires a release **upload keystore**. Never commit it or `.env`.
+
+**Create a keystore** (once):
+
+```bash
+mkdir -p credentials
+keytool -genkeypair -v -storetype PKCS12 \
+  -keystore credentials/upload-keystore.keystore \
+  -alias my-key-alias \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+**Configure secrets** — copy `.env.example` → `.env` and fill:
+
+```properties
+ANDROID_UPLOAD_STORE_FILE=./credentials/upload-keystore.keystore
+ANDROID_UPLOAD_KEY_ALIAS=my-key-alias
+ANDROID_UPLOAD_STORE_PASSWORD=********
+ANDROID_UPLOAD_KEY_PASSWORD=********
+```
+
+`ANDROID_UPLOAD_STORE_FILE` may be absolute or relative to the **repo root**.
+
+The config plugin `plugins/android/withAndroidReleaseSigning.js` reads these on every Android prebuild, copies the keystore into `android/app/`, writes `MYAPP_UPLOAD_*` into `gradle.properties`, and sets `signingConfigs.release`. **Do not hand-edit `android/` for signing.**
+
+If `.env` keys are missing, prebuild still succeeds (debug signing) — release/Play AABs will not be correctly signed until `.env` is complete.
+
+### Step 3 — Prebuild (injects signing)
 
 ```bash
 OTA_PLATFORM=android bun run prebuild:android
 ```
 
-Confirm `android/` exists at the repo root.
+Confirm the plugin logged that release signing was injected (not the “Skipping release signing” warning).
 
-### Step 2 — Upload keystore (once per app)
-
-Google Play requires a release **upload keystore**. Never commit it.
-
-**Option A — Create a new keystore**
-
-```bash
-keytool -genkeypair -v -storetype PKCS12 \
-  -keystore my-upload-key.keystore \
-  -alias my-key-alias \
-  -keyalg RSA -keysize 2048 -validity 10000
-```
-
-Move `my-upload-key.keystore` into `android/app/` (generated folder; already gitignored via `/android`).
-
-**Option B — Reuse an existing Play / EAS keystore**
-
-If credentials already live on EAS:
-
-```bash
-bunx eas-cli@latest credentials -p android
-```
-
-Download to `credentials.json`, place the `.jks` / `.keystore` under `android/app/`, and use the documented alias + passwords in the next step. Do not commit `credentials.json`.
-
-Store passwords and the keystore file in a password manager. Losing the upload key complicates Play updates.
-
-### Step 3 — Gradle signing properties
-
-Add to **`android/gradle.properties`** (or prefer **`~/.gradle/gradle.properties`** so clean prebuilds do not wipe secrets):
-
-```properties
-MYAPP_UPLOAD_STORE_FILE=my-upload-key.keystore
-MYAPP_UPLOAD_KEY_ALIAS=my-key-alias
-MYAPP_UPLOAD_STORE_PASSWORD=********
-MYAPP_UPLOAD_KEY_PASSWORD=********
-```
-
-Replace filenames, alias, and passwords with the values from Step 2.
-
-### Step 4 — Wire `signingConfigs` in `android/app/build.gradle`
-
-In the generated `android/app/build.gradle`:
-
-1. Inside `android { signingConfigs { ... } }`, add a `release` block (keep existing `debug`):
-
-```gradle
-release {
-    if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-        storeFile file(MYAPP_UPLOAD_STORE_FILE)
-        storePassword MYAPP_UPLOAD_STORE_PASSWORD
-        keyAlias MYAPP_UPLOAD_KEY_ALIAS
-        keyPassword MYAPP_UPLOAD_KEY_PASSWORD
-    }
-}
-```
-
-2. Under `buildTypes { release { ... } }`, set:
-
-```gradle
-signingConfig signingConfigs.release
-```
-
-(Default Expo templates often point release at `signingConfigs.debug` — change that for store builds.)
-
-Re-apply this after every `prebuild --clean`.
-
-Official reference: [Expo — Create a release build locally](https://docs.expo.dev/guides/local-app-production/).
-
-### Step 5 — Build the AAB
+### Step 4 — Build the AAB
 
 From the repo root:
 
@@ -163,9 +126,11 @@ cd android
 
 `android/app/build/outputs/bundle/release/app-release.aab`
 
-If the build fails with signing / keystore errors, re-check Steps 2–4. An unsigned or debug-signed AAB will be rejected by Play.
+If the build fails with signing / keystore errors, re-check `.env` and re-run prebuild.
 
-### Step 6 — Upload to Google Play Console
+Official reference: [Expo — Create a release build locally](https://docs.expo.dev/guides/local-app-production/).
+
+### Step 5 — Upload to Google Play Console
 
 1. Open [Google Play Console](https://play.google.com/console) → app with package `com.astrax.sadhansangha`.
 2. **Release** → choose a track (**Internal testing** recommended first).
@@ -174,9 +139,6 @@ If the build fails with signing / keystore errors, re-check Steps 2–4. An unsi
 5. Promote Internal → Closed/Open → Production when ready.
 
 First listing also needs store listing, content rating, privacy policy, and related Play Console setup.
-
-Optional: submit a local AAB via EAS without rebuilding:  
-`bunx eas-cli@latest submit -p android --path ./android/app/build/outputs/bundle/release/app-release.aab`
 
 ### Android APK (sideload / QA only — not Play)
 
@@ -194,7 +156,7 @@ Typical path: `android/app/build/outputs/apk/release/app-release.apk`
 - [ ] `bun verify` green
 - [ ] `expo.version` / `package.json` version bumped (store release only)
 - [ ] `OTA_PLATFORM=android` prebuild completed
-- [ ] Upload keystore + Gradle `signingConfigs.release` configured
+- [ ] Upload keystore + `.env` configured; prebuild injected release signing
 - [ ] `bundleRelease` produced **`app-release.aab`**
 - [ ] AAB uploaded in Play Console
 - [ ] Physical-device smoke test (CDN, tabs, donate, tel/mailto/maps)
@@ -306,7 +268,6 @@ See [ota-self-host.md](./ota-self-host.md).
 
 ## Credentials safety
 
-- Never commit keystores (`.keystore` / `.jks`), `credentials.json`, provisioning profiles, or distribution `.p12` files.
-- Prefer `~/.gradle/gradle.properties` (or a password manager) over committing secrets inside `android/`.
+- Never commit keystores (`.keystore` / `.jks`), `.env`, `credentials.json`, provisioning profiles, or distribution `.p12` files.
+- Prefer `.env` + `plugins/android/withAndroidReleaseSigning.js` for Android release signing (see above).
 - Document Play Console and Apple Developer account owners outside this repo.
-- Prefer EAS-managed credentials if the team later switches to [deployment-eas.md](./deployment-eas.md) — keep one source of truth for the upload key.

@@ -2,7 +2,9 @@
 
 Cloud **native** builds and store submission via [Expo Application Services](https://docs.expo.dev/eas/).
 
-**Scope of this repo:** EAS Build + EAS Submit only.
+**Optional path.** For the current **local** Play AAB flow (`.env` upload key + `./gradlew bundleRelease`, no EAS), use [deployment-local.md](./deployment-local.md) instead.
+
+**Scope of this doc:** EAS Build + EAS Submit only.
 
 **Out of scope:** EAS Update. JS OTA is self-hosted on GitHub Pages (`ssa-static`). See [ota-self-host.md](./ota-self-host.md).
 
@@ -156,7 +158,8 @@ See [ota-self-host.md](./ota-self-host.md).
 | Daily Android debug | Local `bun run android` — [deployment-local.md](./deployment-local.md) |
 | Daily iOS debug | Local `bun run ios` on macOS — [deployment-local.md](./deployment-local.md) |
 | Windows + need iOS IPA | **EAS** `eas:build:ios` |
-| Play AAB without local signing | **EAS** `eas:build:android` |
+| Play AAB without EAS | **Local** `.env` signing + `bundleRelease` — [deployment-local.md](./deployment-local.md) |
+| Play AAB without managing a local keystore | **EAS** `eas:build:android` (optional) |
 | JS-only fix (same `expo.version`) | Self-hosted OTA only — no new EAS build |
 
 ---

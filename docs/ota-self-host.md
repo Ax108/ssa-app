@@ -6,7 +6,7 @@ The app uses **`expo-updates`** with updates hosted on the same GitHub Pages CDN
 
 Folder layout and publish notes live in the static repo: `ssa-static/prod/mobile-app-ota/README.md` (served from GitHub Pages on the **`release`** branch).
 
-This does **not** require an EAS Update subscription. Native store binaries may still be built with **EAS Build** ([deployment-eas.md](./deployment-eas.md)); only the **JS update host** is custom. Content JSON (`config` / locale packs) remains on the separate gist + `prod/json/` pipeline.
+This does **not** require an EAS Update subscription. Native store binaries may be built **locally** ([deployment-local.md](./deployment-local.md) — Play AAB via `.env` signing + `bundleRelease`) or optionally with **EAS Build** ([deployment-eas.md](./deployment-eas.md)); only the **JS update host** is custom. Content JSON (`config` / locale packs) remains on the separate gist + `prod/json/` pipeline.
 
 Do **not** configure EAS Update channels or change `updates.url` to Expo’s servers.
 
@@ -22,7 +22,7 @@ Rules:
 - **JS-only OTA** — do **not** bump `expo.version`. Export and publish under the same runtime (e.g. still `1.0.0`). Store binaries already on that version will pick up the new JS.
 - **Native / store release** — bump **both** `app.json` → `expo.version` and `package.json` → `version` together (e.g. `1.0.0` → `1.0.1` or `1.1.0`), rebuild + submit to the store, **and** publish a matching OTA so the CDN has a bundle for the new runtime (see below).
 
-Optional Android/iOS store build numbers (`android.versionCode`, `ios.buildNumber`) are **not** OTA `runtimeVersion`. With EAS `"appVersionSource": "remote"`, EAS owns those integers — do not bump them in `app.json` unless you switch to `"local"`. See [deployment-eas.md](./deployment-eas.md).
+Optional Android/iOS store build numbers (`android.versionCode`, `ios.buildNumber`) are **not** OTA `runtimeVersion`. For optional EAS with `"appVersionSource": "remote"`, EAS owns those integers — see [deployment-eas.md](./deployment-eas.md). For **local** Android AABs, set / bump `android.versionCode` in `app.json` (or the generated Gradle values) when Play requires a higher version code than the previous upload.
 
 ## App config
 

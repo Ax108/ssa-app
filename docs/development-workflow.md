@@ -37,12 +37,13 @@ Do not mix `npm install` / `yarn` into the same tree unless you intentionally mi
 | `ota:export:android` | Export JS OTA → [ssa-static](https://github.com/astrarudra/ssa-static) `prod/mobile-app-ota/android/` |
 | `ota:export:ios` | Export JS OTA → `prod/mobile-app-ota/ios/` |
 | `ota:export:all` | Export both platforms (android then ios) |
-| `eas:build:android` / `:ios` / `:all` | EAS production Build (AAB / IPA) — login required |
-| `eas:build:dev:android` / `:ios` | EAS **development** profile (dev-client APK / iOS simulator) |
-| `eas:submit:android` / `:ios` | EAS Submit to Play / App Store Connect |
+| `eas:build:android` / `:ios` / `:all` | Optional EAS production Build (AAB / IPA) — login required |
+| `eas:build:dev:android` / `:ios` | Optional EAS **development** profile (dev-client APK / iOS simulator) |
+| `eas:submit:android` / `:ios` | Optional EAS Submit to Play / App Store Connect |
 
+Local Play **AAB** (preferred when not using EAS): configure `.env` → `bun run prebuild:android` → `cd android && ./gradlew bundleRelease` — **[deployment-local.md](./deployment-local.md)**.  
 OTA details (versioning, when to bump `app.json`, Metro vs binary): **[ota-self-host.md](./ota-self-host.md)**.  
-EAS Build/Submit (not EAS Update): **[deployment-eas.md](./deployment-eas.md)**.
+Optional EAS Build/Submit (not EAS Update): **[deployment-eas.md](./deployment-eas.md)**.
 
 ## When to rebuild native vs reload JS
 
@@ -76,6 +77,7 @@ Fix lint, types, and failing tests locally. Husky may also run hooks on commit.
 - **External links:** `openExternalUrl` in `@shared/utils/openUrl`.
 - **Native changes:** never hand-edit `android/` or `ios/`. Use `app.json` plugins (`expo-build-properties`, `plugins/android/*`) then `bun run prebuild`.
 - **Release ABIs:** `expo-build-properties` sets `arm64-v8a` + `x86_64` only to avoid Windows Reanimated CMake/`armeabi-v7a` ninja failures; Gradle heap is raised via `plugins/android/withGradleJvmArgs.js`.
+- **Local Play AAB signing:** `plugins/android/withAndroidReleaseSigning.js` reads `.env` (`ANDROID_UPLOAD_*`) on every Android prebuild — see [deployment-local.md](./deployment-local.md).
 - **Linear gradient:** if the installed binary lacks the native module, `AppLinearGradient` falls back; still rebuild after adding the dependency for production quality.
 - **Text nesting:** Pressable children must be valid RN trees (wrap text in `Text` / structure views carefully — see Satsang screen patterns).
 - **Tab bar height / safe area:** padding belongs on the custom tab bar, not a large bottom inset on `AppRoot`.

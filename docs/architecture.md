@@ -30,7 +30,7 @@ Content (copy, image paths, links) comes from the **same CDN** as the website, w
 | Fonts | Freeman via `expo-font` | Brand typography (`CustomText`) |
 | Network | Native `fetch` via `oxyApi` | No axios / extra HTTP client |
 | Dev client | `expo-dev-client` | Custom native binary required |
-| Store binaries | **EAS Build / Submit** | Cloud AAB/IPA — see [deployment-eas.md](./deployment-eas.md) |
+| Store binaries | **Local** Gradle/Xcode or optional **EAS** | Play AAB: `.env` signing + `bundleRelease` — [deployment-local.md](./deployment-local.md); cloud option — [deployment-eas.md](./deployment-eas.md) |
 | JS OTA | **Self-hosted** `expo-updates` → ssa-static Pages | Not EAS Update — see [ota-self-host.md](./ota-self-host.md) |
 
 ## Navigation model
@@ -155,7 +155,8 @@ External URLs use `openExternalUrl` (`src/shared/utils/openUrl.ts`) — system b
 ## Linking / platform queries
 
 - iOS: `LSApplicationQueriesSchemes` in `app.json` (`https`, `http`, `tel`, `mailto`).
-- Android: config plugin `plugins/withAndroidLinkingQueries.js` so `Linking.canOpenURL` / intents work for http(s) and common schemes.
+- Android: config plugin `plugins/android/withAndroidLinkingQueries.js` so `Linking.canOpenURL` / intents work for http(s) and common schemes.
+- Android release signing: `plugins/android/withAndroidReleaseSigning.js` injects upload-key config from `.env` on prebuild (no hand-edit of `android/`).
 
 ## Testing touchpoints
 

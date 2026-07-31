@@ -25,6 +25,8 @@
     },
     "plugins": [
       "./plugins/android/withGradleJvmArgs.js",
+      "./plugins/android/withAndroidLinkingQueries.js",
+      "./plugins/android/withAndroidReleaseSigning.js",
       [
         "expo-splash-screen",
         {
@@ -36,7 +38,6 @@
       ],
       "expo-font",
       "expo-image",
-      "./plugins/withAndroidLinkingQueries.js",
       [
         "expo-build-properties",
         {

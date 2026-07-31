@@ -11,9 +11,10 @@ ssa-app/
 ├── README.md                 # Project hub
 ├── docs/                     # This documentation set
 ├── package.json              # Scripts, deps, engines
+├── .env.example              # Template for ANDROID_UPLOAD_* (copy to gitignored `.env`)
 ├── app.json                  # Expo app config (name, ids, plugins)
 ├── app.config.js             # Dynamic config — OTA URL + runtimeVersion on top of app.json
-├── eas.json                  # EAS Build / Submit profiles (not EAS Update)
+├── eas.json                  # Optional EAS Build / Submit profiles (not EAS Update)
 ├── index.ts                  # Metro entry → registerRootComponent
 ├── babel.config.js
 ├── metro.config.js
@@ -24,9 +25,10 @@ ssa-app/
 ├── scripts/
 │   └── publish-ota.mjs       # bun run ota:export:* → stage ssa-static OTA
 ├── plugins/                  # Expo config plugins (native tweaks)
-│   ├── withAndroidLinkingQueries.js
 │   └── android/
-│       └── withGradleJvmArgs.js
+│       ├── withGradleJvmArgs.js
+│       ├── withAndroidLinkingQueries.js
+│       └── withAndroidReleaseSigning.js   # `.env` → release signing on prebuild
 ├── assets/                   # App icon, splash, adaptive icon, logos
 ├── src/                      # All application TypeScript / UI
 ├── android/                  # GENERATED — do not hand-edit for features
@@ -38,8 +40,9 @@ ssa-app/
 | Area | Rule |
 |------|------|
 | Config at root | Keep thin: Expo, Metro, ESLint, Jest, entry `index.ts` |
-| `eas.json` | Native cloud builds + store submit only; JS OTA stays on ssa-static |
-| `plugins/` | Expo config plugins only (e.g. Android intent queries) |
+| `eas.json` | Optional cloud builds + store submit; JS OTA stays on ssa-static; local Play AAB uses `.env` + plugins |
+| `plugins/` | Expo config plugins only (Android linking queries, JVM args, release signing from `.env`) |
+| `.env` / `credentials/` | Local only (gitignored) — upload keystore + passwords for Play AAB signing |
 | `assets/` | Store branding binaries referenced from `app.json` |
 | `android/` / `ios/` | Treat as output of `bun run prebuild`; regenerate when native deps/plugins change |
 | `docs/` | Markdown for humans; no runtime imports |
