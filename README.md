@@ -4,7 +4,7 @@ Expo React Native app for [Sadhan Sangha Ashram](https://sadhansangha.in). Conte
 
 | | |
 |---|---|
-| **Package** | `com.astrax.sadhansangha` |
+| **Package / bundle id** | `sadhan.sangha` (Android + iOS) |
 | **Stack** | Expo ~57 · React Native 0.86 · React 19 · Bun · TypeScript |
 | **Package manager** | [Bun](https://bun.sh) (`node` ≥ 24) |
 

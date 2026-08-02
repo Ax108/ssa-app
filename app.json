@@ -9,14 +9,14 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/icon.png",
-      "bundleIdentifier": "com.astrax.sadhansangha",
+      "bundleIdentifier": "sadhan.sangha",
       "supportsTablet": true,
       "infoPlist": {
         "LSApplicationQueriesSchemes": ["https", "http", "tel", "mailto"]
       }
     },
     "android": {
-      "package": "com.astrax.sadhansangha",
+      "package": "sadhan.sangha",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#d29e6c"

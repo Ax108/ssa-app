@@ -65,8 +65,8 @@ jest.mock("expo-constants", () => ({
   default: {
     expoConfig: {
       version: "1.0.0",
-      android: { package: "com.astrax.sadhansangha" },
-      ios: { bundleIdentifier: "com.astrax.sadhansangha" },
+      android: { package: "sadhan.sangha" },
+      ios: { bundleIdentifier: "sadhan.sangha" },
     },
     nativeAppVersion: "1.0.0",
     nativeBuildVersion: "1",

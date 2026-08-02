@@ -95,7 +95,7 @@ describe("evaluateStoreUpdatePrompt", () => {
     appStore.setState({
       config: minimalConfig({
         latestVersion: "1.0.1",
-        androidPackage: "com.astrax.sadhansangha",
+        androidPackage: "sadhan.sangha",
       }),
       texts: minimalTexts(),
     });
@@ -109,7 +109,7 @@ describe("evaluateStoreUpdatePrompt", () => {
     appStore.setState({
       config: minimalConfig({
         latestVersion: "1.0.0",
-        androidPackage: "com.astrax.sadhansangha",
+        androidPackage: "sadhan.sangha",
       }),
     });
 
@@ -122,7 +122,7 @@ describe("evaluateStoreUpdatePrompt", () => {
     appStore.setState({
       config: minimalConfig({
         latestVersion: "1.0.1",
-        androidPackage: "com.astrax.sadhansangha",
+        androidPackage: "sadhan.sangha",
       }),
     });
 
@@ -141,7 +141,7 @@ describe("evaluateStoreUpdatePrompt", () => {
     appStore.setState({
       config: minimalConfig({
         latestVersion: "1.0.1",
-        androidPackage: "com.astrax.sadhansangha",
+        androidPackage: "sadhan.sangha",
       }),
     });
     evaluateStoreUpdatePrompt();

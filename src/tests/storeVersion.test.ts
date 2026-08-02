@@ -20,12 +20,12 @@ describe("isRemoteAppVersionNewer", () => {
 describe("getStoreListingUrl", () => {
   const base: StoreAppMeta = {
     latestVersion: "1.0.1",
-    androidPackage: "com.astrax.sadhansangha",
+    androidPackage: "sadhan.sangha",
   };
 
   it("builds Play Store URL for android", () => {
     expect(getStoreListingUrl(base, "android")).toBe(
-      "https://play.google.com/store/apps/details?id=com.astrax.sadhansangha",
+      "https://play.google.com/store/apps/details?id=sadhan.sangha",
     );
   });
 

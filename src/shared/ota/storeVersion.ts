@@ -41,7 +41,7 @@ export const isRemoteAppVersionNewer = (
 export const getAndroidPackageName = (storeApp?: StoreAppMeta): string =>
   storeApp?.androidPackage ||
   Constants.expoConfig?.android?.package ||
-  "com.astrax.sadhansangha";
+  "sadhan.sangha";
 
 /**
  * Play / App Store product URL for the current platform.

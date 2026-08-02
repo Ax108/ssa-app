@@ -38,8 +38,8 @@ bun verify
 | Field | Value |
 |-------|--------|
 | App name | Sadhan Sangha Ashram |
-| Android `package` | `com.astrax.sadhansangha` |
-| iOS `bundleIdentifier` | `com.astrax.sadhansangha` |
+| Android `package` | `sadhan.sangha` (must match Play Console) |
+| iOS `bundleIdentifier` | `sadhan.sangha` (same as Android) |
 | `expo.version` | Bump for each **store** release; keep `package.json` `version` equal |
 
 JS-only fixes after a binary ships: do **not** bump version — use OTA ([ota-self-host.md](./ota-self-host.md)).
@@ -152,7 +152,7 @@ cd android
 
 ### Step 5 — Upload to Google Play Console
 
-1. Open [Google Play Console](https://play.google.com/console) → app with package `com.astrax.sadhansangha`.
+1. Open [Google Play Console](https://play.google.com/console) → app with package `sadhan.sangha`.
 2. **Release** → choose a track (**Internal testing** recommended first).
 3. **Create new release** → upload `app-release.aab`.
 4. Add release notes → review → roll out.
@@ -194,7 +194,7 @@ Requires: **macOS**, Xcode (latest stable), CocoaPods, **Apple Developer Program
 
 | Item | Where |
 |------|--------|
-| Bundle id | `app.json` → `ios.bundleIdentifier` = `com.astrax.sadhansangha` |
+| Bundle id | `app.json` → `ios.bundleIdentifier` = `sadhan.sangha` |
 | Linking schemes (https/tel/mailto) | `app.json` → `ios.infoPlist.LSApplicationQueriesSchemes` |
 | OTA URL for iOS binary | `bun run prebuild:ios` sets `OTA_PLATFORM=ios` automatically |
 | Splash / fonts / image / updates | Shared Expo plugins (same as Android) |
@@ -238,7 +238,7 @@ Use the **`.xcworkspace`**, not the `.xcodeproj`.
 
 ### Step 5 — Signing (distribution) in Xcode
 
-1. Select the project → target **Sadhan Sangha Ashram** (bundle id `com.astrax.sadhansangha`).
+1. Select the project → target **Sadhan Sangha Ashram** (bundle id `sadhan.sangha`).
 2. **Signing & Capabilities**:
    - Team = your **Apple Developer** team
    - Enable **Automatically manage signing** (typical), or install a matching **App Store** provisioning profile manually
@@ -279,7 +279,7 @@ bun run start   # Metro with expo-dev-client, if used
 - [ ] `bun run prebuild:ios` completed (OTA URL is iOS automatically)
 - [ ] `pod install` succeeded
 - [ ] Opened **`.xcworkspace`**
-- [ ] Bundle id `com.astrax.sadhansangha`; distribution signing OK
+- [ ] Bundle id `sadhan.sangha`; distribution signing OK
 - [ ] Archive from **Any iOS Device** (not simulator)
 - [ ] Uploaded to App Store Connect / TestFlight
 - [ ] TestFlight smoke test (CDN, tabs, donate, tel/mailto/maps)

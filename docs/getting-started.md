@@ -74,7 +74,7 @@ bun run start
 bun run devClear
 ```
 
-Open the installed **Sadhan Sangha Ashram** / `com.astrax.sadhansangha` app; it should connect to Metro.
+Open the installed **Sadhan Sangha Ashram** / `sadhan.sangha` (Android) app; it should connect to Metro.
 
 ## First run — iOS (macOS)
 
