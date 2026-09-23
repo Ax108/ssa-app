@@ -30,8 +30,7 @@ import { fileURLToPath } from "node:url";
 import { buildImmutableLaunchAsset } from "./otaLaunchTree.mjs";
 
 const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
-const CDN_BASE =
-  "https://astrarudra.github.io/ssa-static/prod/mobile-app-ota";
+const CDN_BASE = "https://astrarudra.github.io/ssa-static/prod/mobile-app-ota";
 
 const args = process.argv.slice(2);
 const getArg = (name, fallback) => {

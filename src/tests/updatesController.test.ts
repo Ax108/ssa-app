@@ -1,8 +1,6 @@
 import {
   createJsBundleOtaController,
   getOtaDebugInfo,
-  syncOtaUpdate,
-  type OtaSyncResult,
 } from "@shared/ota/updatesController";
 import * as Updates from "expo-updates";
 import { Platform } from "react-native";
@@ -41,17 +39,15 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-describe("syncOtaUpdate", () => {
+describe("createJsBundleOtaController", () => {
   it("skips when Updates.isEnabled is false", async () => {
     mockUpdates.isEnabled = false;
-
-    const result = await syncOtaUpdate();
-
-    expect(result.status).toBe("skipped");
+    const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await controller.onOpening(false);
     expect(mockUpdates.checkForUpdateAsync).not.toHaveBeenCalled();
   });
 
-  it("returns store-required when CDN store version is newer", async () => {
+  it("skips when CDN store version is newer", async () => {
     appStore.setState({
       config: {
         storeApp: {
@@ -61,48 +57,30 @@ describe("syncOtaUpdate", () => {
       } as never,
     });
 
-    const result = await syncOtaUpdate();
-    expect(result.status).toBe("store-required");
+    const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await controller.onOpening(false);
     expect(mockUpdates.checkForUpdateAsync).not.toHaveBeenCalled();
   });
 
-  it("returns up-to-date when no remote update", async () => {
+  it("does not fetch when no remote update", async () => {
     mockUpdates.checkForUpdateAsync.mockResolvedValue({ isAvailable: false });
-    const result = await syncOtaUpdate();
-    expect(result).toEqual({ status: "up-to-date" } satisfies OtaSyncResult);
+    const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await controller.onOpening(false);
+    expect(mockUpdates.checkForUpdateAsync).toHaveBeenCalledTimes(1);
     expect(mockUpdates.fetchUpdateAsync).not.toHaveBeenCalled();
   });
 
-  it("fetches when an update is available without reloading", async () => {
+  it("fetches when an update is available without reloading on that opening", async () => {
     mockUpdates.checkForUpdateAsync.mockResolvedValue({ isAvailable: true });
     mockUpdates.fetchUpdateAsync.mockResolvedValue({ isNew: true });
 
-    const result = await syncOtaUpdate();
+    const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await controller.onOpening(false);
 
-    expect(result.status).toBe("fetched");
     expect(mockUpdates.fetchUpdateAsync).toHaveBeenCalledTimes(1);
     expect(mockUpdates.reloadAsync).not.toHaveBeenCalled();
   });
 
-  it("skips quietly when Expo rejects development updates", async () => {
-    mockUpdates.checkForUpdateAsync.mockRejectedValue(
-      new Error(
-        "Updates.checkForUpdateAsync() is not supported in development builds.",
-      ),
-    );
-    const result = await syncOtaUpdate();
-    expect(result.status).toBe("skipped");
-  });
-
-  it("returns failed on other check errors", async () => {
-    mockUpdates.checkForUpdateAsync.mockRejectedValue(new Error("offline"));
-    const result = await syncOtaUpdate();
-    expect(result.status).toBe("failed");
-    expect(result.message).toContain("offline");
-  });
-});
-
-describe("createJsBundleOtaController", () => {
   it("activates a pending update on the next opening only", async () => {
     mockUpdates.checkForUpdateAsync.mockResolvedValue({ isAvailable: true });
     mockUpdates.fetchUpdateAsync.mockResolvedValue({ isNew: true });
@@ -116,17 +94,24 @@ describe("createJsBundleOtaController", () => {
     expect(mockUpdates.reloadAsync).toHaveBeenCalledTimes(1);
   });
 
-  it("skips when store update is required", async () => {
-    appStore.setState({
-      config: {
-        storeApp: {
-          latestVersion: "9.9.9",
-          androidPackage: "sadhan.sangha",
-        },
-      } as never,
-    });
-
+  it("swallows development unsupported errors without throwing", async () => {
+    mockUpdates.checkForUpdateAsync.mockRejectedValue(
+      new Error(
+        "Updates.checkForUpdateAsync() is not supported in development builds.",
+      ),
+    );
     const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await expect(controller.onOpening(false)).resolves.toBeUndefined();
+  });
+
+  it("swallows other check errors without throwing", async () => {
+    mockUpdates.checkForUpdateAsync.mockRejectedValue(new Error("offline"));
+    const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await expect(controller.onOpening(false)).resolves.toBeUndefined();
+  });
+
+  it("skips entirely in a forced dev runtime", async () => {
+    const controller = createJsBundleOtaController({ isDevRuntime: true });
     await controller.onOpening(false);
     expect(mockUpdates.checkForUpdateAsync).not.toHaveBeenCalled();
   });

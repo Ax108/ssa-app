@@ -1,5 +1,6 @@
 /** Public GitHub Pages base for self-hosted Expo Updates (ssa-static). */
-const OTA_CDN_BASE = "https://astrarudra.github.io/ssa-static/prod/mobile-app-ota";
+const OTA_CDN_BASE =
+  "https://astrarudra.github.io/ssa-static/prod/mobile-app-ota";
 
 /**
  * Resolve which OTA folder to bake into `updates.url`.
@@ -16,16 +17,26 @@ const OTA_CDN_BASE = "https://astrarudra.github.io/ssa-static/prod/mobile-app-ot
  * @returns {"android" | "ios"}
  */
 function resolveOtaPlatform() {
-  const fromEnv = (process.env.OTA_PLATFORM || process.env.EAS_BUILD_PLATFORM || "").toLowerCase();
+  const fromEnv = (
+    process.env.OTA_PLATFORM ||
+    process.env.EAS_BUILD_PLATFORM ||
+    ""
+  ).toLowerCase();
   if (fromEnv === "ios" || fromEnv === "android") {
     return fromEnv;
   }
 
   const args = process.argv.join(" ").toLowerCase();
-  if (/--platform(?:=|\s+)ios\b/.test(args) || /\s-p(?:=|\s+)ios\b/.test(args)) {
+  if (
+    /--platform(?:=|\s+)ios\b/.test(args) ||
+    /\s-p(?:=|\s+)ios\b/.test(args)
+  ) {
     return "ios";
   }
-  if (/--platform(?:=|\s+)android\b/.test(args) || /\s-p(?:=|\s+)android\b/.test(args)) {
+  if (
+    /--platform(?:=|\s+)android\b/.test(args) ||
+    /\s-p(?:=|\s+)android\b/.test(args)
+  ) {
     return "android";
   }
 

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { Buffer } from "node:buffer";
 
 import { buildImmutableLaunchAsset } from "./otaLaunchTree.mjs";
 

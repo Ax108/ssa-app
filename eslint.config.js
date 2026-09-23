@@ -8,9 +8,8 @@ const jestPlugin = require("eslint-plugin-jest");
 
 // ESLint 9 requires the same plugin object reference across config blocks.
 // Reuse expo's @typescript-eslint instance (not tseslint.plugin).
-const expoTsPlugin = [...expoConfig].find(
-  (block) => block.plugins?.["@typescript-eslint"],
-)?.plugins?.["@typescript-eslint"];
+const expoTsPlugin = [...expoConfig].find((block) => block.plugins?.["@typescript-eslint"])
+  ?.plugins?.["@typescript-eslint"];
 
 module.exports = defineConfig([
   // Do not spread tseslint.configs.* — that redefines @typescript-eslint.
@@ -36,6 +35,36 @@ module.exports = defineConfig([
       "jest.config.js",
       "index.ts",
     ],
+  },
+
+  // ─── Bun publisher scripts (not part of the Expo TS project) ──────────────
+  {
+    files: ["scripts/**/*.{js,mjs}"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
+    },
+    plugins: {
+      prettier: require("eslint-plugin-prettier"),
+    },
+    settings: {
+      "import/core-modules": ["bun:test"],
+      "import/resolver": {
+        node: {
+          extensions: [".js", ".mjs"],
+        },
+      },
+    },
+    rules: {
+      "prettier/prettier": "error",
+      "import/no-unresolved": "error",
+      "no-undef": "error",
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/consistent-type-imports": "off",
+    },
   },
 
   // ─── All source files ─────────────────────────────────────────────────────
@@ -67,17 +96,7 @@ module.exports = defineConfig([
           project: "./tsconfig.json",
         },
         node: {
-          extensions: [
-            ".js",
-            ".jsx",
-            ".ts",
-            ".tsx",
-            ".png",
-            ".jpg",
-            ".jpeg",
-            ".gif",
-            ".svg",
-          ],
+          extensions: [".js", ".jsx", ".ts", ".tsx", ".png", ".jpg", ".jpeg", ".gif", ".svg"],
         },
       },
     },
@@ -104,10 +123,7 @@ module.exports = defineConfig([
       "import/no-deprecated": "warn",
 
       // TYPESCRIPT
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-floating-promises": "warn",
       "@typescript-eslint/no-require-imports": "off",
