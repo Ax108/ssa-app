@@ -48,8 +48,8 @@ Driven from `src/App.tsx` (splash gate) and implemented in `src/appStore/content
    - **Empty cache** → `loadVersion(locale)`: gist version → fetch CDN JSON → persist → apply to Zustand.
    - **Cache hit** → apply cache immediately → **`await syncVersion()`** (gist; if version changed → `await loadVersion()`).
    - **Failure** → use remaining cache if any, else bundled seed JSON for that locale; still mark content ready so the UI can open offline.
-3. Splash also waits a short **~500ms after fonts** (`splashMinElapsed`) for brand presence.
-4. Splash also **awaits** `syncOtaUpdate()` (OTA check/fetch) before mounting `AppRoot`.
+3. Splash also waits a **~3000ms floor after fonts** (`splashMinElapsed`) for brand presence (minimum; longer if content init is still running).
+4. Splash does **not** wait for JS OTA — `useJsBundleOtaSync` runs after `AppRoot` mounts (store gate skips OTA when a newer store binary is required).
 5. Then `AppRoot` / navigation mounts. Screens only **read** the store — they do not refetch on tab change.
 6. **Language switcher** (top navbar) calls `contentController.setLocale` — uses cached locale pack or fetches `GIT.texts[locale]`.
 
@@ -77,17 +77,24 @@ CDN long-form fields often use `**Heading**` plus multi-space runs (and sometime
 ## Store binary update snackbar
 
 Separate from CDN content `version` and from JS OTA.
+App: [Ax108/ssa-app](https://github.com/Ax108/ssa-app). CDN: [astrarudra/ssa-static](https://github.com/astrarudra/ssa-static).
 
 | Piece | Role |
 |-------|------|
-| `config.storeApp.latestVersion` | Newest **store** semver (e.g. `1.0.1`) |
+| CDN [`prod/json/config.json`](https://github.com/astrarudra/ssa-static/blob/main/prod/json/config.json) → `storeApp.latestVersion` | Newest **store** semver — set **manually** when a new binary is live on Play / App Store |
 | Installed `expo.version` | Compared via `isRemoteAppVersionNewer` |
 | `StoreUpdateSnackbar` | Global bar above nav, only after custom splash (`AppRoot`) |
 | Session dismiss | Hide until **next cold start**; if still outdated, show again |
 
-Bump `storeApp.latestVersion` on the CDN (and seed) when a new binary is on Play / App Store. Set `iosAppId` (or `iosStoreUrl`) before iOS can deep-link; Android uses `androidPackage` / Play URL. Update CTA opens the platform store listing.
+There is no Play / App Store API. After each store release, edit
+`storeApp.latestVersion` in [ssa-static](https://github.com/astrarudra/ssa-static)
+`prod/json/config.json` to match `app.json` `expo.version` in [ssa-app](https://github.com/Ax108/ssa-app),
+push to Pages (`release`), and keep the app seed `src/assets/json/config.json` in sync.
+Older binaries then see the store prompt and **skip JS OTA**. Set `iosAppId` (or
+`iosStoreUrl`) before iOS can deep-link; Android uses `androidPackage` / Play URL.
 
-Copy: `headers.storeUpdateMessage` / `storeUpdateAction` in locale packs.
+Copy: `headers.storeUpdateMessage` / `storeUpdateAction` in locale packs
+(`prod/json/{en,hi,bn}.json` on the CDN).
 
 ## Updating content without an app store release
 

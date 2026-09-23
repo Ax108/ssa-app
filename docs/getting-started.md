@@ -88,7 +88,7 @@ Use a simulator from Xcode or a signed development device. Physical devices need
 
 ## What “ready” looks like
 
-1. Custom splash stays until **fonts**, **awaited `contentController.init()`** (cache and/or CDN + version sync), **awaited OTA sync**, and a short ~500ms floor after fonts.
+1. Custom splash stays until **fonts**, **awaited `contentController.init()`** (cache and/or CDN + version sync), and a **~3000ms** floor after fonts (minimum; longer if content init is still running). **JS OTA is not part of the splash gate** (background sync after `AppRoot` mounts).
 2. Custom bottom bar over a **single nested stack**: Home, Ashram, Satsang, Gallery, Contact (see [architecture.md](./architecture.md)).
 3. Images load from the production CDN (or seed JSON offline); YouTube/Spotify open externally.
 

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sadhan Sangha Ashram",
     "slug": "astrax-sadhan-sangha-app",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "astraxsadhansanghaapp",
@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "sadhan.sangha",
+      "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#d29e6c"
@@ -42,7 +43,11 @@
         "expo-build-properties",
         {
           "android": {
-            "buildArchs": ["arm64-v8a", "x86_64"]
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          },
+          "ios": {
+            "enableSceneSupport": true
           }
         }
       ]

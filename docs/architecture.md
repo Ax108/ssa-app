@@ -7,9 +7,9 @@ How the mobile app is structured at runtime and in source.
 ```
 index.ts
   → src/App.tsx
-      → fonts (useLoadFonts) + await contentController.init() + await syncOtaUpdate()  [boot]
-      → CustomSplashScreen until fonts + bootReady + ~500ms after fonts
-      → NavigationContainer (navigationRef) + NavStackMain
+      → fonts (useLoadFonts) + await contentController.init()  [boot]
+      → CustomSplashScreen until fonts + bootReady + ~3000ms after fonts
+      → AppRoot: useJsBundleOtaSync (background) + StoreUpdateSnackbar + NavStackMain
           → Bottom tab shell (top navbar + one nested stack)
               → home | ashram | satsang | gallery | contact
               → donation (stack-only, not a bottom tab)
@@ -81,10 +81,11 @@ Splash stays until **all** of:
 
 1. Fonts loaded (`useLoadFonts`)
 2. `await contentController.init()` finished (local cache and/or CDN + version sync)
-3. Short brand floor (~**500ms** after fonts) so a warm cache does not flash through splash
-4. **`await syncOtaUpdate()`** so the custom splash stays up during the OTA check/fetch
+3. Short brand floor (~**3000ms** after fonts) so a warm cache does not flash through splash. Content init can keep splash up longer if the CDN is slow.
 
-Together these set `bootReady` / `splashMinElapsed` in `App.tsx` before mounting `AppRoot`.
+JS OTA (`useJsBundleOtaSync`) runs **after** `AppRoot` mounts and never blocks splash. When CDN `storeApp.latestVersion` is newer than the installed binary, the store snackbar prompts and JS OTA is skipped.
+
+Together fonts + content + splash floor set `bootReady` / `splashMinElapsed` in `App.tsx` before mounting `AppRoot`.
 
 Bottom safe-area padding belongs on the **tab bar**, not as a large AppRoot bottom inset (avoids a white gap above the bar).
 
@@ -141,7 +142,7 @@ External URLs use `openExternalUrl` (`src/shared/utils/openUrl.ts`) — system b
 | `StoreUpdateSnackbar` | Global store-binary update prompt (post-splash) |
 | `AppLinearGradient` | Gradient with native/fallback |
 | `SSALogoIcon` | SVG logo |
-| `syncOtaUpdate` / `storeVersion` | Self-hosted Expo Updates check + store listing URLs |
+| `jsBundleOtaController` / `storeVersion` | Self-hosted Expo Updates + store listing URLs / gate |
 | `formatConfig` / `assetUrl` | CDN paths, YouTube helpers, markdown (`stripBasicMarkdown`, `paragraphsFromMarkdown`, `sectionsFromMarkdown`) |
 | `oxyApi` | Native `fetch` wrapper (gist + git CDN) |
 | `logger` | Dev-only console; no-op in production |

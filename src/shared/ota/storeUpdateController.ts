@@ -7,9 +7,21 @@ import {
 import { logger } from "@shared/utils/logger";
 
 /**
- * After splash / content load: show the store-update snackbar once per
- * cold start when CDN `storeApp.latestVersion` is newer than the binary.
- * Dismiss hides it until the next app restart (same old version → show again).
+ * True when CDN `storeApp.latestVersion` is newer than the installed binary.
+ * When true, JS OTA must not run — user needs a Play / App Store update.
+ */
+export const shouldDeferToStoreUpdate = (): boolean => {
+  const storeApp = appStore.getState().config?.storeApp;
+  if (!storeApp?.latestVersion?.trim()) return false;
+  const installed = getInstalledAppVersion();
+  if (!isRemoteAppVersionNewer(storeApp.latestVersion, installed)) return false;
+  return Boolean(getStoreListingUrl(storeApp));
+};
+
+/**
+ * After splash / content load: show the store-update prompt when CDN
+ * `storeApp.latestVersion` is newer than the binary. Dismiss hides it until
+ * the next cold start (same old version → show again).
  */
 export const evaluateStoreUpdatePrompt = (): void => {
   const { config, storeUpdateDismissedThisSession, setStoreUpdateVisible } =

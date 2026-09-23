@@ -1,6 +1,6 @@
 # Sadhan Sangha Ashram (mobile)
 
-Expo React Native app for [Sadhan Sangha Ashram](https://sadhansangha.in). Content and brand follow the live website CDN; navigation and chrome are native (React Navigation nested stack + custom tab bar, Zustand). Splash awaits fonts, content init (AsyncStorage / CDN), and self-hosted JS OTA sync before the main UI. See [docs/ota-self-host.md](./docs/ota-self-host.md).
+Expo React Native app for [Sadhan Sangha Ashram](https://sadhansangha.in). Content and brand follow the live website CDN; navigation and chrome are native (React Navigation nested stack + custom tab bar, Zustand). Splash awaits fonts, content init (AsyncStorage / CDN), and a ~3000ms floor after fonts; JS OTA runs in the background after the main UI mounts. See [docs/ota-self-host.md](./docs/ota-self-host.md).
 
 | | |
 |---|---|

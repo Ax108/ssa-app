@@ -6,7 +6,6 @@ import { AppRoot } from "@modules/app/AppRoot";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 import { contentController } from "@store/contentController";
-import { syncOtaUpdate } from "@shared/ota/updatesController";
 import { logger } from "@shared/utils/logger";
 
 enableScreens();
@@ -15,7 +14,7 @@ SplashScreen.hideAsync().catch((err) =>
   logger.error("Failed to HideAsync native splash screen: ", err),
 );
 
-const SPLASH_MIN_MS = 500;
+const SPLASH_MIN_MS = 3000;
 
 const App = () => {
   const { fontsLoaded, fontError } = useLoadFonts();
@@ -26,9 +25,8 @@ const App = () => {
     let cancelled = false;
     void (async () => {
       try {
+        // Content (incl. CDN storeApp) must load before JS OTA / store prompt.
         await contentController.init();
-        // Keep custom splash up while OTA check/fetch runs (apply on next cold start).
-        await syncOtaUpdate();
       } finally {
         if (!cancelled) {
           setBootReady(true);
@@ -46,7 +44,7 @@ const App = () => {
     return () => clearTimeout(t);
   }, [fontsLoaded, fontError]);
 
-  // Stay on custom splash until fonts, min time, content init, AND OTA sync finish.
+  // Splash gates fonts, min time, and content — never JS-bundle OTA.
   const ready = fontsLoaded && bootReady && splashMinElapsed;
 
   return (

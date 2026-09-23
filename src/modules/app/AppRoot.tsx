@@ -7,6 +7,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { NavStackMain } from "@navigation/NavStackMain";
 import { navigationRef } from "@navigation/navigationRef";
 import { StoreUpdateSnackbar } from "@shared/components/StoreUpdateSnackbar";
+import { useJsBundleOtaSync } from "@shared/ota/useJsBundleOtaSync";
 
 /** expo-status-bar: `light` = light icons (dark bg), `dark` = dark icons (light bg). */
 const schemeToBarStyle = (scheme: "light" | "dark"): StatusBarStyle =>
@@ -16,6 +17,9 @@ export const AppRoot = () => {
   const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>(() =>
     schemeToBarStyle(getDeviceColorScheme()),
   );
+
+  // Background JS OTA — skipped when CDN requires a newer store binary.
+  useJsBundleOtaSync();
 
   useEffect(() => {
     const syncStatusBar = () => {

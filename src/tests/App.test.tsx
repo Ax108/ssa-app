@@ -19,10 +19,6 @@ jest.mock("@store/contentController", () => ({
   },
 }));
 
-jest.mock("@shared/ota/updatesController", () => ({
-  syncOtaUpdate: jest.fn().mockResolvedValue({ status: "up-to-date" }),
-}));
-
 describe("App", () => {
   it("shows the splash brand title before fonts are ready", async () => {
     await render(<App />);

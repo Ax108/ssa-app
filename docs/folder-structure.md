@@ -51,7 +51,7 @@ ssa-app/
 
 ```
 src/
-├── App.tsx                   # Splash gate: fonts + content init + OTA sync + ~500ms
+├── App.tsx                   # Splash gate: fonts + content init + ~3000ms min after fonts
 ├── appStore/                 # Zustand store (global — not under modules/)
 │   ├── appStore.ts
 │   ├── navbarSlice.ts
@@ -73,7 +73,8 @@ src/
 ├── shared/                   # Cross-module UI, hooks, utils, types, APIs
 │   ├── components/           # FollowUsSection, AppFooterStrip, StoreUpdateSnackbar, …
 │   ├── hooks/                # useNavigateTab, useNavigateDonation, …
-│   ├── ota/                  # syncOtaUpdate, storeVersion, storeUpdateController
+│   ├── ota/                  # jsBundle OTA controller, storeVersion, storeUpdateController
+│   │                         # useJsBundleOtaSync
 │   ├── helpers/
 │   ├── serviceCalls/         # oxyApi (native fetch)
 │   ├── types/
@@ -105,7 +106,7 @@ Same pattern for `ashram`, `satsang`, `gallery`, `contact`, `donation`. Navigati
 - **`navbarSlice`** — active route title for **bottom tab** highlight (top bar is brand-only).
 - **`contentSlice`** — `loaded`, `version`, `locale`, `config`, `texts`.
 - **`storeUpdateSlice`** — session visibility for the store-update snackbar.
-- **`contentController`** — async boot (cache → sync/CDN); awaited from `App.tsx` splash together with OTA sync.
+- **`contentController`** — async boot (cache → sync/CDN); awaited from `App.tsx` splash. JS OTA starts from `AppRoot` via `useJsBundleOtaSync` (not splash-gated).
 
 Do not relocate the store into `modules/`.
 

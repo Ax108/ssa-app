@@ -72,7 +72,7 @@ Fix lint, types, and failing tests locally. Husky may also run hooks on commit.
 ## Hot tips
 
 - **AsyncStorage:** this project pins `@react-native-async-storage/async-storage` **v2** for Expo compatibility. Do not jump to v3 without verifying the native module links in the Expo 57 binary.
-- **Content boot:** splash awaits cache + version sync **and** OTA sync; clearing AsyncStorage forces a full CDN load on next start.
+- **Content boot:** splash awaits cache + version sync; JS OTA runs in the background after `AppRoot` mounts (never blocks splash).
 - **Logging:** use `logger` from `@shared/utils/logger` (dev-only); avoid raw `console.*` in app code.
 - **External links:** `openExternalUrl` in `@shared/utils/openUrl`.
 - **Native changes:** never hand-edit `android/` or `ios/`. Use `app.json` plugins (`expo-build-properties`, `plugins/android/*`) then `bun run prebuild`.

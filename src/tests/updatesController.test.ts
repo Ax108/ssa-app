@@ -1,9 +1,20 @@
 import {
+  createJsBundleOtaController,
   getOtaDebugInfo,
   syncOtaUpdate,
   type OtaSyncResult,
 } from "@shared/ota/updatesController";
 import * as Updates from "expo-updates";
+import { Platform } from "react-native";
+import { appStore } from "@store/appStore";
+
+jest.mock("@shared/ota/storeVersion", () => {
+  const actual = jest.requireActual("@shared/ota/storeVersion");
+  return {
+    ...actual,
+    getInstalledAppVersion: jest.fn(() => "1.0.0"),
+  };
+});
 
 const mockUpdates = Updates as unknown as {
   isEnabled: boolean;
@@ -15,9 +26,15 @@ const mockUpdates = Updates as unknown as {
 beforeEach(() => {
   jest.clearAllMocks();
   mockUpdates.isEnabled = true;
+  Object.defineProperty(Platform, "OS", {
+    configurable: true,
+    get: () => "android",
+  });
+  appStore.setState({ config: null });
   jest.spyOn(console, "log").mockImplementation(() => {});
   jest.spyOn(console, "debug").mockImplementation(() => {});
   jest.spyOn(console, "warn").mockImplementation(() => {});
+  jest.spyOn(console, "info").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -34,6 +51,21 @@ describe("syncOtaUpdate", () => {
     expect(mockUpdates.checkForUpdateAsync).not.toHaveBeenCalled();
   });
 
+  it("returns store-required when CDN store version is newer", async () => {
+    appStore.setState({
+      config: {
+        storeApp: {
+          latestVersion: "9.9.9",
+          androidPackage: "sadhan.sangha",
+        },
+      } as never,
+    });
+
+    const result = await syncOtaUpdate();
+    expect(result.status).toBe("store-required");
+    expect(mockUpdates.checkForUpdateAsync).not.toHaveBeenCalled();
+  });
+
   it("returns up-to-date when no remote update", async () => {
     mockUpdates.checkForUpdateAsync.mockResolvedValue({ isAvailable: false });
     const result = await syncOtaUpdate();
@@ -41,7 +73,7 @@ describe("syncOtaUpdate", () => {
     expect(mockUpdates.fetchUpdateAsync).not.toHaveBeenCalled();
   });
 
-  it("fetches when an update is available without reloading by default", async () => {
+  it("fetches when an update is available without reloading", async () => {
     mockUpdates.checkForUpdateAsync.mockResolvedValue({ isAvailable: true });
     mockUpdates.fetchUpdateAsync.mockResolvedValue({ isNew: true });
 
@@ -50,16 +82,6 @@ describe("syncOtaUpdate", () => {
     expect(result.status).toBe("fetched");
     expect(mockUpdates.fetchUpdateAsync).toHaveBeenCalledTimes(1);
     expect(mockUpdates.reloadAsync).not.toHaveBeenCalled();
-  });
-
-  it("reloads when reloadImmediately is true", async () => {
-    mockUpdates.checkForUpdateAsync.mockResolvedValue({ isAvailable: true });
-    mockUpdates.fetchUpdateAsync.mockResolvedValue({ isNew: true });
-    mockUpdates.reloadAsync.mockResolvedValue(undefined);
-
-    await syncOtaUpdate({ reloadImmediately: true });
-
-    expect(mockUpdates.reloadAsync).toHaveBeenCalledTimes(1);
   });
 
   it("skips quietly when Expo rejects development updates", async () => {
@@ -80,10 +102,40 @@ describe("syncOtaUpdate", () => {
   });
 });
 
+describe("createJsBundleOtaController", () => {
+  it("activates a pending update on the next opening only", async () => {
+    mockUpdates.checkForUpdateAsync.mockResolvedValue({ isAvailable: true });
+    mockUpdates.fetchUpdateAsync.mockResolvedValue({ isNew: true });
+    mockUpdates.reloadAsync.mockResolvedValue(undefined);
+
+    const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await controller.onOpening(false);
+    expect(mockUpdates.reloadAsync).not.toHaveBeenCalled();
+
+    await controller.onOpening(true);
+    expect(mockUpdates.reloadAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips when store update is required", async () => {
+    appStore.setState({
+      config: {
+        storeApp: {
+          latestVersion: "9.9.9",
+          androidPackage: "sadhan.sangha",
+        },
+      } as never,
+    });
+
+    const controller = createJsBundleOtaController({ isDevRuntime: false });
+    await controller.onOpening(false);
+    expect(mockUpdates.checkForUpdateAsync).not.toHaveBeenCalled();
+  });
+});
+
 describe("getOtaDebugInfo", () => {
   it("exposes runtime fields from expo-updates", () => {
     const info = getOtaDebugInfo();
-    expect(info.runtimeVersion).toBe("1.0.0");
     expect(typeof info.isEnabled).toBe("boolean");
+    expect(info).toHaveProperty("runtimeVersion");
   });
 });

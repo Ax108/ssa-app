@@ -1,6 +1,9 @@
 import { Platform } from "react-native";
 import { appStore } from "@store/appStore";
-import { evaluateStoreUpdatePrompt } from "@shared/ota/storeUpdateController";
+import {
+  evaluateStoreUpdatePrompt,
+  shouldDeferToStoreUpdate,
+} from "@shared/ota/storeUpdateController";
 import * as storeVersion from "@shared/ota/storeVersion";
 import type { Config } from "@shared/types/config";
 import type { Texts } from "@shared/types/texts";
@@ -151,5 +154,27 @@ describe("evaluateStoreUpdatePrompt", () => {
     evaluateStoreUpdatePrompt();
 
     expect(appStore.getState().storeUpdateVisible).toBe(true);
+  });
+});
+
+describe("shouldDeferToStoreUpdate", () => {
+  it("is true when CDN store version is newer and store URL exists", () => {
+    appStore.setState({
+      config: minimalConfig({
+        latestVersion: "1.0.1",
+        androidPackage: "sadhan.sangha",
+      }),
+    });
+    expect(shouldDeferToStoreUpdate()).toBe(true);
+  });
+
+  it("is false when versions match", () => {
+    appStore.setState({
+      config: minimalConfig({
+        latestVersion: "1.0.0",
+        androidPackage: "sadhan.sangha",
+      }),
+    });
+    expect(shouldDeferToStoreUpdate()).toBe(false);
   });
 });
